@@ -33,6 +33,56 @@ class PegawaiController extends Controller
         ]);
     }
 
+    /**
+     * List pegawai with pagination and optional search by nama
+     */
+    public function index(Request $request)
+    {
+        $perPage = (int) $request->input('per_page', 10);
+        $q = $request->input('q');
+
+        $query = Pegawai::with(['fotoFile', 'ktpFile', 'npwpFile', 'akun']);
+
+        if ($q) {
+            $query->where('nama', 'like', "%{$q}%");
+        }
+
+        $paginated = $query->orderBy('nama')->paginate($perPage);
+
+        // transform collection to include file paths and akun summary
+        $collection = $paginated->getCollection()->map(function ($p) {
+            return [
+                'id' => $p->id,
+                'nama' => $p->nama,
+                'jenis_kelamin' => $p->jenis_kelamin,
+                'pendidikan' => $p->pendidikan,
+                'foto' => $p->fotoFile?->path ?? null,
+                'ktp' => $p->ktpFile?->path ?? null,
+                'npwp' => $p->npwpFile?->path ?? null,
+                'akun' => $p->akun ? [
+                    'id' => $p->akun->id,
+                    'email' => $p->akun->email,
+                    'telp' => $p->akun->telp,
+                ] : null,
+            ];
+        });
+
+        $paginated->setCollection($collection);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'items' => $paginated->items(),
+                'meta' => [
+                    'current_page' => $paginated->currentPage(),
+                    'last_page' => $paginated->lastPage(),
+                    'per_page' => $paginated->perPage(),
+                    'total' => $paginated->total(),
+                ],
+            ],
+        ]);
+    }
+
     public function add(Request $request)
     {
         $request->validate([

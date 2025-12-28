@@ -21,13 +21,14 @@ Route::middleware([AuthAdminMiddleware::class])->group(function () {
     Route::get('/pegawai', [DashboardController::class, 'pegawai']);
     Route::get('/pegawai/{id}', [DashboardController::class, 'pegawai_detail']);
 
+    Route::get('/api/pegawai', [PegawaiController::class, 'index']);
     Route::get('/api/pegawai/{id}', [PegawaiController::class, 'detail']);
     Route::post('/api/pegawai/add', [PegawaiController::class, 'add']);
     Route::post('/api/pegawai/{id}/update', [PegawaiController::class, 'update']);
     Route::post('/api/pegawai/{id}/photo', [PegawaiController::class, 'uploadPhoto']);
     Route::post('/api/pegawai/{id}/ktp', [PegawaiController::class, 'uploadKtp']);
     Route::post('/api/pegawai/{id}/npwp', [PegawaiController::class, 'uploadNpwp']);
-    // Akun routes
+
     Route::get('/api/akun/{id}', [\App\Http\Controllers\AkunController::class, 'detail']);
     Route::post('/api/akun/{id}/update', [\App\Http\Controllers\AkunController::class, 'update']);
 });
