@@ -1,5 +1,9 @@
 import { useState } from "react"
 import { FiMenu, FiHome, FiUsers, FiLogOut, FiChevronLeft } from "react-icons/fi"
+import { LuClipboardList } from "react-icons/lu";
+import { PiTreeStructure } from "react-icons/pi";
+import { LuFileClock } from "react-icons/lu";
+import { TbCalendarClock } from "react-icons/tb";
 
 interface object_sss {
     usr?: string
@@ -28,12 +32,48 @@ export const dashboardMenu: MenuItemConfig[] = [
         href: "/dashboard",
         roles: ["admin", "kepala", "pegawai"]
     },
+
+    // Admin
     {
         label: "Pegawai",
         icon: <FiUsers />,
         href: "/pegawai",
         roles: ["admin"]
     },
+    {
+        label: "Presensi",
+        icon: <LuClipboardList />,
+        href: "/presensi",
+        roles: ["admin"]
+    },
+    {
+        label: "Cuti",
+        icon: <LuFileClock />,
+        href: "/cuti",
+        roles: ["admin"]
+    },
+    {
+        label: "Jabatan",
+        icon: <PiTreeStructure />,
+        href: "/jabatan",
+        roles: ["admin"]
+    },
+    {
+        label: "Kegiatan",
+        icon: <TbCalendarClock />,
+        href: "/kegiatan",
+        roles: ["admin"]
+    },
+
+    // Pegawai
+    {
+        label: "Presensi",
+        icon: <LuClipboardList />,
+        href: "/pg/presensi",
+        roles: ["pegawai"]
+    },
+
+    // End
     {
         label: "Logout",
         icon: <FiLogOut />,

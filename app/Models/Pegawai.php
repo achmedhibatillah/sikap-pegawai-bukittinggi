@@ -8,6 +8,8 @@ use Illuminate\Support\Str;
 use App\Models\StorageFile;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Akun;
+use App\Models\Presensi;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Pegawai extends Model
 {
@@ -81,5 +83,14 @@ class Pegawai extends Model
     public function akun(): BelongsTo
     {
         return $this->belongsTo(Akun::class, 'akun_id');
+    }
+
+    /**
+     * Presensi records related to this pegawai via pivot table pegawai_presensi
+     */
+    public function presensi(): BelongsToMany
+    {
+        return $this->belongsToMany(Presensi::class, 'pegawai_presensi', 'pegawai_id', 'presensi_id')
+            ->withPivot(['status', 'masuk', 'keluar', 'catatan']);
     }
 }

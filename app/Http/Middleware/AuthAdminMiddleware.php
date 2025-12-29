@@ -15,7 +15,7 @@ class AuthAdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! session()->has('sss.usr')) {
+        if (!session()->has('sss.usr') && session('usr')['acs'] !== 'admin') {
             return redirect('/login');
         }
 

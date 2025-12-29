@@ -83,6 +83,16 @@ class PegawaiController extends Controller
         ]);
     }
 
+    public function get_id_by_akun($akun_id)
+    {
+        $pegawai = Pegawai::where('akun_id', $akun_id)->first();
+        $pegawai_id = $pegawai->id;
+
+        return response()->json([
+            'pegawai_id' => $pegawai_id
+        ]);
+    }
+
     public function add(Request $request)
     {
         $request->validate([

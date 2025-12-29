@@ -177,7 +177,6 @@ const PegawaiDetail = ({ pegawai, open, setOpen }: PegawaiDetailProps) => {
                 const resp = await axios.post(`/api/pegawai/${values.id}/update`, values)
                 if (resp.data?.status === 'success') {
                     alert('Data identitas berhasil disimpan')
-                    // close popup and refresh page to fetch updated data
                     setOpenEditMenu(false)
                     window.location.reload()
                 } else {
@@ -230,7 +229,7 @@ const PegawaiDetail = ({ pegawai, open, setOpen }: PegawaiDetailProps) => {
                     {/* {JSON.stringify(pegawai)} */}
                     <div className="w-full bg-amber-200 h-[100px] relative rounded-md mb-12 grid">
                         <div className="absolute -translate-1/2 -bottom-[80px] left-1/2">
-                            <ProfilePicture image={pegawai?.foto} />
+                            <ProfilePicture className={`h-[100px] w-[100px]`} classNameBlank={`text-[45px]`} image={pegawai?.foto} />
                         </div>
                     </div>
                     <div className="text-center">
@@ -295,9 +294,13 @@ const PegawaiDetail = ({ pegawai, open, setOpen }: PegawaiDetailProps) => {
                                     <div className="text-gray-600">Email</div>
                                     <div className="col-span-3 rounded bg-gray-100 p-3">{(pegawai as any)?.akun?.email ?? '-'}</div>
                                 </div>
-                                <div className="grid grid-cols-4">
+                                <div className="grid grid-cols-4 mb-3">
                                     <div className="text-gray-600">Nomor telepon</div>
                                     <div className="col-span-3 rounded bg-gray-100 p-3">+62{(pegawai as any)?.akun?.telp ?? '-'}</div>
+                                </div>
+                                <div className="grid grid-cols-4">
+                                    <div className="text-gray-600">Password</div>
+                                    <div className="col-span-3 rounded bg-gray-100 text-gray-500 p-3">••••••••</div>
                                 </div>
                             </div>
                         </div>
@@ -440,7 +443,7 @@ const PegawaiDetail = ({ pegawai, open, setOpen }: PegawaiDetailProps) => {
                     <div className="mb-3 flex flex-col items-center">
                         <div className="text-sm mb-1">Preview</div>
                         <div className="mb-4">
-                            <ProfilePicture className="h-[180px] w-[180px]" image={photoPreview ?? pegawai?.foto} />
+                            <ProfilePicture className="h-[180px] w-[180px]" classNameBlank={`text-[75px]`} image={photoPreview ?? pegawai?.foto} />
                         </div>
                         <input
                             className="bg-gray-200 p-3 rounded-md cursor-pointer"

@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardPegawaiController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PegawaiController;
+use App\Http\Controllers\PresensiController;
 use App\Http\Middleware\AuthAdminMiddleware;
 use App\Http\Middleware\GuestMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -19,10 +21,20 @@ Route::middleware([GuestMiddleware::class])->group(function () {
 Route::middleware([AuthAdminMiddleware::class])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::get('/pegawai', [DashboardController::class, 'pegawai']);
+    Route::get('/presensi', [\App\Http\Controllers\PresensiController::class, 'index']);
+    Route::get('/presensi/{id}', [\App\Http\Controllers\PresensiController::class, 'detail']);
     Route::get('/pegawai/{id}', [DashboardController::class, 'pegawai_detail']);
+
+    Route::get('/presensi', [PresensiController::class, 'index']);
 
     Route::get('/api/pegawai', [PegawaiController::class, 'index']);
     Route::get('/api/pegawai/{id}', [PegawaiController::class, 'detail']);
+    Route::get('/api/pegawai-by-akun/{id}', [PegawaiController::class, 'get_id_by_akun']);
+    Route::post('/api/presensi/add', [\App\Http\Controllers\PresensiController::class, 'add']);
+    Route::post('/api/presensi/{id}/attendance', [\App\Http\Controllers\PresensiController::class, 'addAttendance']);
+    Route::get('/api/presensi', [\App\Http\Controllers\PresensiController::class, 'list']);
+    Route::get('/api/presensi/{id}', [\App\Http\Controllers\PresensiController::class, 'detailApi']);
+    Route::post('/api/presensi/{id}/pegawai/{pegawai_id}/update', [\App\Http\Controllers\PresensiController::class, 'updatePegawaiPresensi']);
     Route::post('/api/pegawai/add', [PegawaiController::class, 'add']);
     Route::post('/api/pegawai/{id}/update', [PegawaiController::class, 'update']);
     Route::post('/api/pegawai/{id}/photo', [PegawaiController::class, 'uploadPhoto']);
@@ -31,6 +43,11 @@ Route::middleware([AuthAdminMiddleware::class])->group(function () {
 
     Route::get('/api/akun/{id}', [\App\Http\Controllers\AkunController::class, 'detail']);
     Route::post('/api/akun/{id}/update', [\App\Http\Controllers\AkunController::class, 'update']);
+
+    Route::prefix('/pg')->group(function () {
+        Route::get('/dashboard', [DashboardPegawaiController::class, 'index']);
+        Route::get('/presensi', [DashboardPegawaiController::class, 'presensi']);
+    });
 });
 
 

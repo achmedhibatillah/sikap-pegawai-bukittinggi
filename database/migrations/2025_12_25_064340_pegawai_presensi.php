@@ -18,8 +18,7 @@ return new class extends Migration
             $table->enum('status', ['Hadir', 'Hadir (Telat)', 'Izin', 'Cuti', 'Alpa']);
             $table->time('masuk');
             $table->time('keluar');
-            $table->string('catatan_masuk', 255);
-            $table->string('catatan_keluar', 255);
+            $table->string('catatan', 255)->nullable();
 
             $table->foreign('pegawai_id')->references('id')->on('pegawai')->onDelete('cascade');
             $table->foreign('presensi_id')->references('id')->on('presensi')->onDelete('cascade');

@@ -1,5 +1,7 @@
 import DashboardLayout from "@/layout/dashboard-layout"
 
+import IndexPegawaiPage from "./index/index-pegawai"
+
 interface object_sss {
     usr?: string,
     acs?: string
@@ -12,7 +14,13 @@ interface IndexDashboardPageProps {
 const IndexDashboardPage = ({sss}: IndexDashboardPageProps) => {
     return (
         <DashboardLayout sss={sss} now="Dashboard">
-            lorem
+            {(sss?.acs === "admin") ? (
+                <></>
+            ) : (sss?.acs === "pegawai") ? (
+                <IndexPegawaiPage akun_id={sss?.usr} />
+            ) : (sss?.acs === "kepala") ? (
+                <></>
+            ) : null}
         </DashboardLayout>
     )
 }

@@ -9,9 +9,9 @@ import PegawaiAdd from "@/section/pegawai-add"
 import InputText from "@/component/input-text"
 import ProfilePicture from "@/component/profile-picture"
 import JenisKelamin from "@/component/jenis-kelamin"
-import { BiSolidUserDetail } from "react-icons/bi";
 import { IoMdPersonAdd } from "react-icons/io";
 import { FaSearch } from "react-icons/fa";
+import { MdMail } from "react-icons/md";
 
 interface object_sss {
     usr?: string,
@@ -91,16 +91,16 @@ const PegawaiPage = ({ sss }: DashboardPageProps) =>{
                         {!loading && items.length === 0 && <div>Tidak ada data</div>}
                         {!loading && items.map((p: any) => (
                             <div key={p.id} className="rounded bg-white p-3 shadow flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <ProfilePicture image={p.foto ?? null} />
+                                <div className="flex items-center gap-4">
+                                    <ProfilePicture className={`h-[60px] w-[60px]`} classNameBlank={`text-[35px]`} image={p.foto ?? null} />
                                     <div>
-                                        <div className="font-semibold">{p.nama}</div>
+                                        <div className="font-semibold text-xl leading-5 mb-2">{p.nama}</div>
                                         <div className="text-sm text-gray-500"><JenisKelamin jenis_kelamin={p.jenis_kelamin} /></div>
-                                        <div className="text-sm text-gray-500">{p.akun?.email ?? ''} {p.akun?.telp ? ('• ' + p.akun.telp) : ''}</div>
+                                        <div className="text-sm text-gray-500"><MdMail className="inline me-1" />{p.akun?.email ?? ''}</div>
                                     </div>
                                 </div>
                                 <div>
-                                    <Button onClick={() => window.location.href = '/pegawai/' + p.id}>Lihat <BiSolidUserDetail className="inline mb-1" /></Button>
+                                    <Button onClick={() => window.location.href = '/pegawai/' + p.id}>Lihat</Button>
                                 </div>
                             </div>
                         ))}
@@ -108,7 +108,10 @@ const PegawaiPage = ({ sss }: DashboardPageProps) =>{
 
                     {meta && (
                         <div className="flex items-center justify-between mt-4">
-                            <div>Menampilkan halaman {meta.current_page} dari {meta.last_page} — {meta.total} item</div>
+                            <div className="text-gray-400 text-sm">
+                                <div className="">Menampilkan halaman {meta.current_page} dari {meta.last_page}.</div>
+                                <div className="">Total: {meta.total} item.</div>
+                            </div>
                             <div className="flex items-center gap-2">
                                 <Button disabled={meta.current_page <= 1} onClick={() => setPage(Math.max(1, meta.current_page - 1))}>Prev</Button>
                                 <Button disabled={meta.current_page >= meta.last_page} onClick={() => setPage(Math.min(meta.last_page, meta.current_page + 1))}>Next</Button>
