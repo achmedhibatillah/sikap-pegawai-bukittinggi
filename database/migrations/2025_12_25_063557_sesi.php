@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('presensi', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('catatan', 255)->nullable();
-            $table->date('tanggal')->unique();
+            $table->date('tanggal');
             $table->time('jam_mulai');
             $table->time('jam_selesai');
         });

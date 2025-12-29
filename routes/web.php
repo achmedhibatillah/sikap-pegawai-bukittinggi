@@ -62,3 +62,9 @@ Route::get('/d', function () {
     session()->flush();
     return redirect()->to('s');
 });
+
+// Pegawai helper endpoints (no admin middleware) -------------------------------------------------
+Route::get('/api/presensi/current', [\App\Http\Controllers\PresensiController::class, 'currentApi']);
+// Dev helper: create today's presensi if none exists (only active in local/dev env)
+Route::post('/api/presensi/dev-create-today', [\App\Http\Controllers\PresensiController::class, 'devCreateToday']);
+

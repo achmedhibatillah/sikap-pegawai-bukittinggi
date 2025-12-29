@@ -230,6 +230,127 @@ class PresensiController extends Controller
     }
 
     /**
+     * API: return today's presensi (if any). Optionally include pivot row for a pegawai_id
+     */
+    public function currentApi(Request $request)
+    {
+        $pegawaiId = $request->input('pegawai_id');
+
+        $today = date('Y-m-d');
+        $presensi = Presensi::where('tanggal', $today)->first();
+
+        if (! $presensi) {
+            return response()->json(['status' => 'not-found', 'data' => null], 200);
+        }
+
+        $pivot = null;
+        if ($pegawaiId) {
+            $row = DB::table('pegawai_presensi')
+                ->where('presensi_id', $presensi->id)
+                ->where('pegawai_id', $pegawaiId)
+                ->first();
+
+            if ($row) {
+                $pivot = [
+                    'status' => $row->status,
+                    'masuk' => $row->masuk,
+                    'keluar' => $row->keluar,
+                    'catatan' => $row->catatan,
+                ];
+            }
+        }
+
+        // check if now is within jam range
+        $withinNow = false;
+        try {
+            $now = new \DateTime();
+            $start = new \DateTime($presensi->tanggal . ' ' . $presensi->jam_mulai);
+            $end = new \DateTime($presensi->tanggal . ' ' . $presensi->jam_selesai);
+            $withinNow = ($now >= $start && $now <= $end);
+        } catch (\Exception $e) {
+            $withinNow = false;
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'presensi' => [
+                    'id' => $presensi->id,
+                    'tanggal' => $presensi->tanggal?->toDateString(),
+                    'jam_mulai' => $presensi->jam_mulai,
+                    'jam_selesai' => $presensi->jam_selesai,
+                    'catatan' => $presensi->catatan,
+                ],
+                'pivot' => $pivot,
+                'within_now' => $withinNow,
+            ],
+        ]);
+    }
+
+    /**
+     * Dev helper: create a presensi session for today if none exists.
+     * This endpoint is intended for local/dev only and will return 403 outside local env.
+     */
+    public function devCreateToday(Request $request)
+    {
+        if (env('APP_ENV') !== 'local' && env('APP_ENV') !== 'development') {
+            return response()->json(['status' => 'forbidden'], 403);
+        }
+
+        $today = date('Y-m-d');
+        $exists = Presensi::where('tanggal', $today)->first();
+        if ($exists) {
+            return response()->json(['status' => 'success', 'data' => ['presensi' => [
+                'id' => $exists->id,
+                'tanggal' => $exists->tanggal?->toDateString(),
+                'jam_mulai' => $exists->jam_mulai,
+                'jam_selesai' => $exists->jam_selesai,
+                'catatan' => $exists->catatan,
+            ]]], 200);
+        }
+
+        $jam_mulai = $request->input('jam_mulai', '08:00:00');
+        $jam_selesai = $request->input('jam_selesai', '17:00:00');
+        $catatan = $request->input('catatan', 'Auto-created for dev');
+
+        $presensi = DB::transaction(function () use ($today, $jam_mulai, $jam_selesai, $catatan) {
+            $p = Presensi::create([
+                'id' => (string) Str::uuid(),
+                'tanggal' => $today,
+                'jam_mulai' => $jam_mulai,
+                'jam_selesai' => $jam_selesai,
+                'catatan' => $catatan,
+            ]);
+
+            $pegawaiIds = Pegawai::pluck('id')->toArray();
+            $rows = [];
+            foreach ($pegawaiIds as $pid) {
+                $rows[] = [
+                    'pegawai_id' => $pid,
+                    'presensi_id' => $p->id,
+                    'status' => 'Alpa',
+                    'masuk' => $p->jam_mulai,
+                    'keluar' => $p->jam_selesai,
+                    'catatan' => '',
+                ];
+            }
+            if (! empty($rows)) {
+                DB::table('pegawai_presensi')->insert($rows);
+            }
+
+            return $p;
+        });
+
+        return response()->json(['status' => 'success', 'data' => ['presensi' => [
+            'id' => $presensi->id,
+            'tanggal' => $presensi->tanggal?->toDateString(),
+            'jam_mulai' => $presensi->jam_mulai,
+            'jam_selesai' => $presensi->jam_selesai,
+            'catatan' => $presensi->catatan,
+        ]]], 201);
+    }
+
+    /**
      * Update a pegawai_presensi pivot row for a given presensi and pegawai
      */
     public function updatePegawaiPresensi(Request $request, $id, $pegawai_id)

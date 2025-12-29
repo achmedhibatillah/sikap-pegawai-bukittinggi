@@ -86,11 +86,17 @@ class PegawaiController extends Controller
     public function get_id_by_akun($akun_id)
     {
         $pegawai = Pegawai::where('akun_id', $akun_id)->first();
-        $pegawai_id = $pegawai->id;
+
+        // if no pegawai found for this akun, return null instead of causing an error
+        if (! $pegawai) {
+            return response()->json([
+                'pegawai_id' => null
+            ], 200);
+        }
 
         return response()->json([
-            'pegawai_id' => $pegawai_id
-        ]);
+            'pegawai_id' => $pegawai->id
+        ], 200);
     }
 
     public function add(Request $request)
