@@ -18,10 +18,9 @@ return new class extends Migration
             $table->date('tanggal_selesai');
             $table->string('catatan', 255)->nullable();
             $table->boolean('acc')->default(false);
-            $table->uuid('bukti')->nullable();
             $table->uuid('pegawai_id');
+            $table->timestamps();
 
-            $table->foreign('bukti')->references('id')->on('storage')->onDelete('cascade');
             $table->foreign('pegawai_id')->references('id')->on('pegawai')->onDelete('cascade');
         });
     }

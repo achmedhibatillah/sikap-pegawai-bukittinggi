@@ -59,6 +59,12 @@ export const dashboardMenu: MenuItemConfig[] = [
         roles: ["admin"]
     },
     {
+        label: "Jabatan Ajuan",
+        icon: <LuFileClock />,
+        href: "/jabatan-ajuan",
+        roles: ["admin", "kepala"]
+    },
+    {
         label: "Kegiatan",
         icon: <TbCalendarClock />,
         href: "/kegiatan",
@@ -67,9 +73,21 @@ export const dashboardMenu: MenuItemConfig[] = [
 
     // Pegawai
     {
-        label: "Presensi",
+        label: "Riwayat Presensi",
         icon: <LuClipboardList />,
         href: "/pg/presensi",
+        roles: ["pegawai"]
+    },
+    {
+        label: "Cuti",
+        icon: <LuFileClock />,
+        href: "/pg/cuti",
+        roles: ["pegawai"]
+    },
+    {
+        label: "Jabatan",
+        icon: <PiTreeStructure />,
+        href: "/pg/jabatan",
         roles: ["pegawai"]
     },
 

@@ -16,6 +16,10 @@ class DashboardController extends Controller
 
     public function pegawai()
     {
+        $sss = session('sss');
+        if (($sss['acs'] ?? '') !== 'admin') {
+            return redirect('/dashboard');
+        }
         return Inertia::render('dashboard/pegawai', [
             'sss' => session('sss')
         ]);
@@ -23,9 +27,24 @@ class DashboardController extends Controller
 
     public function pegawai_detail($id)
     {
+        $sss = session('sss');
+        if (($sss['acs'] ?? '') !== 'admin') {
+            return redirect('/dashboard');
+        }
         return Inertia::render('dashboard/pegawai-detail', [
             'sss' => session('sss'),
             'id' => $id
+        ]);
+    }
+
+    public function cuti()
+    {
+        $sss = session('sss');
+        if (($sss['acs'] ?? '') !== 'admin') {
+            return redirect('/dashboard');
+        }
+        return Inertia::render('dashboard/cuti', [
+            'sss' => session('sss')
         ]);
     }
 }

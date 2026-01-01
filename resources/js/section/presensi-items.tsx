@@ -1,3 +1,4 @@
+// <parameter name="content">
 import { useState, useEffect } from "react"
 import axios from "axios"
 import DashboardLayout from "@/layout/dashboard-layout"
@@ -105,22 +106,36 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
         return time.slice(0, 5)
     }
 
+    const getStatusColor = (status: string) => {
+        const colors: Record<string, { bg: string; text: string }> = {
+            hadir: { bg: "bg-emerald-100", text: "text-emerald-700" },
+            telat: { bg: "bg-amber-100", text: "text-amber-700" },
+            izin: { bg: "bg-sky-100", text: "text-sky-700" },
+            cuti: { bg: "bg-purple-100", text: "text-purple-700" },
+            alpa: { bg: "bg-red-100", text: "text-red-700" },
+            total: { bg: "bg-gray-100", text: "text-gray-700" },
+        }
+        return colors[status.toLowerCase()] || colors.total
+    }
+
     const StatCard = ({
         label,
         value,
-        color,
+        status,
     }: {
         label: string
         value: number
-        color: string
-    }) => (
-        <div
-            className={`${color} rounded-lg p-3 text-center min-w-[72px] flex flex-col items-center justify-center`}
-        >
-            <div className="text-xs font-medium opacity-90">{label}</div>
-            <div className="text-xl font-bold mt-0.5">{value}</div>
-        </div>
-    )
+        status: string
+    }) => {
+        const color = getStatusColor(status)
+        return (
+            <div
+                className={`${color.bg} ${color.text} rounded-lg p-3 text-center min-w-[80px]`}
+            >
+                <div className="text-xs font-medium opacity-80">{label}</div>
+                <div className="text-xl font-bold mt-0.5">{value}</div>
+        )
+    }
 
     return (
         <DashboardLayout sss={sss} now="Presensi">
@@ -185,7 +200,6 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
                                     placeholder="Pilih tanggal"
                                 />
                             </div>
-                        </div>
                         <div className="flex gap-2">
                             <Button
                                 onClick={handleFilter}
@@ -226,7 +240,6 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
                                 Reset
                             </Button>
                         </div>
-                    </div>
                 </div>
 
                 {/* Add Presensi Modal */}
@@ -247,7 +260,6 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
                         <div className="relative">
                             <div className="h-12 w-12 rounded-full border-4 border-gray-200"></div>
                             <div className="absolute top-0 left-0 h-12 w-12 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin"></div>
-                        </div>
                         <p className="text-gray-500 mt-4">Memuat data...</p>
                     </div>
                 )}
@@ -278,7 +290,10 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
                                 : "Belum ada sesi presensi yang dibuat. Klik tombol Tambah Sesi untuk membuat yang pertama."}
                         </p>
                         {(from || to) && (
-                            <Button onClick={handleClearFilter} className="mt-4">
+                            <Button
+                                onClick={handleClearFilter}
+                                className="mt-4"
+                            >
                                 Hapus Filter
                             </Button>
                         )}
@@ -341,10 +356,9 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
                                                             )}
                                                         </span>
                                                     </div>
-                                                </div>
                                             </div>
                                             {s.catatan && (
-                                                <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 text-sm rounded-lg">
+                                                <div className="mt-2 ml-13 pl-13 inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 text-sm rounded-lg">
                                                     <svg
                                                         className="w-4 h-4 flex-shrink-0"
                                                         fill="none"
@@ -367,37 +381,39 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
 
                                         {/* Right Side - Stats & Action */}
                                         <div className="flex flex-col sm:flex-row lg:items-center gap-4">
-                                            <div className="flex gap-2 flex-wrap">
+                                            <div className="flex gap-2">
                                                 <StatCard
                                                     label="Hadir"
                                                     value={s.totals.hadir}
-                                                    color="bg-emerald-100 text-emerald-700"
+                                                    status="hadir"
                                                 />
                                                 <StatCard
                                                     label="Telat"
                                                     value={s.totals.telat}
-                                                    color="bg-amber-100 text-amber-700"
+                                                    status="telat"
                                                 />
                                                 <StatCard
                                                     label="Izin"
                                                     value={s.totals.izin}
-                                                    color="bg-sky-100 text-sky-700"
+                                                    status="izin"
                                                 />
                                                 <StatCard
                                                     label="Cuti"
                                                     value={s.totals.cuti}
-                                                    color="bg-purple-100 text-purple-700"
+                                                    status="cuti"
                                                 />
                                                 <StatCard
                                                     label="Alpa"
                                                     value={s.totals.alpa}
-                                                    color="bg-red-100 text-red-700"
+                                                    status="alpa"
                                                 />
-                                                <StatCard
-                                                    label="Total"
-                                                    value={s.totals.total}
-                                                    color="bg-gray-100 text-gray-700"
-                                                />
+                                                <div className="bg-gray-100 text-gray-700 rounded-lg p-3 text-center min-w-[80px]">
+                                                    <div className="text-xs font-medium opacity-80">
+                                                        Total
+                                                    </div>
+                                                    <div className="text-xl font-bold mt-0.5">
+                                                        {s.totals.total}
+                                                    </div>
                                             </div>
                                             <Button
                                                 onClick={() =>
@@ -428,9 +444,7 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
                                                 Lihat Detail
                                             </Button>
                                         </div>
-                                    </div>
                                 </div>
-                            </div>
                         ))}
                     </div>
                 )}
@@ -536,7 +550,6 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
                                     </svg>
                                 </Button>
                             </div>
-                        </div>
                     </div>
                 )}
             </div>
@@ -545,4 +558,4 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
 }
 
 export default PresensiPage
-
+</parameter>

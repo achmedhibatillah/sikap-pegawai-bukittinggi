@@ -9,6 +9,7 @@ use App\Models\StorageFile;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Akun;
 use App\Models\Presensi;
+use App\Models\Jabatan;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Pegawai extends Model
@@ -92,5 +93,39 @@ class Pegawai extends Model
     {
         return $this->belongsToMany(Presensi::class, 'pegawai_presensi', 'pegawai_id', 'presensi_id')
             ->withPivot(['status', 'masuk', 'keluar', 'catatan']);
+    }
+
+    /**
+     * Jabatan records related to this pegawai via pivot table pegawai_jabatan
+     */
+    public function jabatans(): BelongsToMany
+    {
+        return $this->belongsToMany(Jabatan::class, 'pegawai_jabatan', 'pegawai_id', 'jabatan_id')
+            ->withPivot(['mulai', 'selesai']);
+    }
+
+    /**
+     * Get current active jabatan (where selesai is null or in the future)
+     */
+    public function currentJabatan()
+    {
+        return $this->belongsToMany(Jabatan::class, 'pegawai_jabatan', 'pegawai_id', 'jabatan_id')
+            ->where(function ($query) {
+                $query->whereNull('selesai')
+                      ->orWhere('selesai', '>=', now()->toDateString());
+            })
+            ->withPivot(['mulai', 'selesai'])
+            ->orderBy('mulai', 'desc')
+            ->limit(1);
+    }
+
+    /**
+     * Get all jabatan history ordered by mulai date descending
+     */
+    public function jabatanHistory()
+    {
+        return $this->belongsToMany(Jabatan::class, 'pegawai_jabatan', 'pegawai_id', 'jabatan_id')
+            ->withPivot(['mulai', 'selesai'])
+            ->orderBy('mulai', 'desc');
     }
 }

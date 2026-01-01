@@ -15,11 +15,26 @@ class PegawaiController extends Controller
 {
     public function detail($id)
     {
-    $pegawai = Pegawai::with(['fotoFile', 'ktpFile', 'npwpFile', 'akun'])->find($id);
+        $pegawai = Pegawai::with(['fotoFile', 'ktpFile', 'npwpFile', 'akun'])->find($id);
 
         if (! $pegawai) {
             return response()->json(['status' => 'not-found'], 404);
         }
+
+        // Get current active jabatan
+        $currentJabatan = $pegawai->currentJabatan()->first();
+        
+        // Get jabatan history
+        $jabatanHistory = $pegawai->jabatans()->get()->map(function ($j) {
+            return [
+                'id' => $j->id,
+                'nama' => $j->nama,
+                'tingkatan' => $j->tingkatan,
+                'mulai' => $j->pivot->mulai,
+                'selesai' => $j->pivot->selesai,
+                'is_current' => ($j->pivot->selesai === null || $j->pivot->selesai >= now()->toDateString()),
+            ];
+        });
 
         return response()->json([
             'status' => 'success',
@@ -29,6 +44,13 @@ class PegawaiController extends Controller
                 'ktp'  => $pegawai->ktpFile?->path ?? null,
                 'npwp' => $pegawai->npwpFile?->path ?? null,
                 'akun' => $pegawai->akun?->toArray() ?? null,
+                'current_jabatan' => $currentJabatan ? [
+                    'id' => $currentJabatan->id,
+                    'nama' => $currentJabatan->nama,
+                    'tingkatan' => $currentJabatan->tingkatan,
+                    'mulai' => $currentJabatan->pivot->mulai,
+                ] : null,
+                'jabatan_history' => $jabatanHistory,
             ]
         ]);
     }

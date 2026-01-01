@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\Pegawai;
+use App\Models\Cuti;
 
 class PresensiController extends Controller
 {
@@ -20,10 +21,6 @@ class PresensiController extends Controller
         ]);
     }
 
-    /**
-     * API: list presensi sessions with pagination and optional date range filter
-     * Returns per-row aggregated attendance counts
-     */
     public function list(Request $request)
     {
         $perPage = (int) $request->input('per_page', 10);
@@ -106,6 +103,11 @@ class PresensiController extends Controller
      */
     public function add(Request $request)
     {
+        $sss = session('sss');
+        if (($sss['acs'] ?? '') !== 'admin') {
+            return response()->json(['status' => 'forbidden'], 403);
+        }
+
         $request->validate([
             'tanggal' => 'required|date',
             'jam_mulai' => 'required',
@@ -122,15 +124,25 @@ class PresensiController extends Controller
                 'catatan' => $request->catatan ?? null,
             ]);
 
+            $tanggalPresensi = $request->tanggal;
             $pegawaiIds = Pegawai::pluck('id')->toArray();
+
+            // Get all approved leaves for this date (optimized: single query)
+            $cutiIds = Cuti::where('acc', true)
+                ->whereDate('tanggal_mulai', '<=', $tanggalPresensi)
+                ->whereDate('tanggal_selesai', '>=', $tanggalPresensi)
+                ->pluck('pegawai_id')
+                ->toArray();
+
             $rows = [];
             foreach ($pegawaiIds as $pid) {
+                // Check if employee is in the leave list
+                $status = in_array($pid, $cutiIds) ? 'Cuti' : 'Alpa';
+
                 $rows[] = [
                     'pegawai_id' => $pid,
                     'presensi_id' => $p->id,
-                    'status' => 'Alpa',
-                    'masuk' => $p->jam_mulai,
-                    'keluar' => $p->jam_selesai,
+                    'status' => $status,
                     'catatan' => '',
                 ];
             }
@@ -146,6 +158,11 @@ class PresensiController extends Controller
 
     public function addAttendance(Request $request, $id)
     {
+        $sss = session('sss');
+        if (($sss['acs'] ?? '') !== 'admin') {
+            return response()->json(['status' => 'forbidden'], 403);
+        }
+
         $request->validate([
             'pegawai_ids' => 'required|array|min:1',
             'pegawai_ids.*' => 'uuid|exists:pegawai,id',
@@ -163,8 +180,6 @@ class PresensiController extends Controller
                 'pegawai_id' => $pid,
                 'presensi_id' => $presensi->id,
                 'status' => $request->status ?? 'Hadir',
-                'masuk' => $request->masuk ?? $presensi->jam_mulai,
-                'keluar' => $request->keluar ?? $presensi->jam_selesai,
                 'catatan' => $request->catatan ?? '',
             ];
         }
@@ -229,61 +244,113 @@ class PresensiController extends Controller
         ]);
     }
 
-    /**
-     * API: return today's presensi (if any). Optionally include pivot row for a pegawai_id
-     */
     public function currentApi(Request $request)
     {
         $pegawaiId = $request->input('pegawai_id');
 
-        $today = date('Y-m-d');
-        $presensi = Presensi::where('tanggal', $today)->first();
 
-        if (! $presensi) {
-            return response()->json(['status' => 'not-found', 'data' => null], 200);
+        $presensis = Presensi::orderBy('jam_mulai', 'desc')->get();
+
+        if ($presensis->isEmpty()) {
+            return response()->json(['status' => 'not-found', 'data' => []], 200);
         }
 
-        $pivot = null;
-        if ($pegawaiId) {
-            $row = DB::table('pegawai_presensi')
-                ->where('presensi_id', $presensi->id)
-                ->where('pegawai_id', $pegawaiId)
-                ->first();
+        $result = $presensis->map(function ($presensi) use ($pegawaiId) {
+            $pivot = null;
+            if ($pegawaiId) {
+                $row = DB::table('pegawai_presensi')
+                    ->where('presensi_id', $presensi->id)
+                    ->where('pegawai_id', $pegawaiId)
+                    ->first();
 
-            if ($row) {
-                $pivot = [
-                    'status' => $row->status,
-                    'masuk' => $row->masuk,
-                    'keluar' => $row->keluar,
-                    'catatan' => $row->catatan,
-                ];
+                if ($row) {
+                    $pivot = [
+                        'status' => $row->status,
+                        'masuk' => $row->masuk,
+                        'keluar' => $row->keluar,
+                        'catatan' => $row->catatan,
+                    ];
+                }
             }
-        }
 
-        // check if now is within jam range
-        $withinNow = false;
-        try {
-            $now = new \DateTime();
-            $start = new \DateTime($presensi->tanggal . ' ' . $presensi->jam_mulai);
-            $end = new \DateTime($presensi->tanggal . ' ' . $presensi->jam_selesai);
-            $withinNow = ($now >= $start && $now <= $end);
-        } catch (\Exception $e) {
             $withinNow = false;
-        }
+            $isOpen = false;
+            try {
+                // Get the presensi date from the record itself
+                $tanggalStr = $presensi->tanggal instanceof \DateTime 
+                    ? $presensi->tanggal->format('Y-m-d') 
+                    : (string) $presensi->tanggal;
+                
+                $today = date('Y-m-d');
+                
+                // Check if presensi date is today
+                $isToday = ($tanggalStr === $today);
+                
+                // For presensi on other dates, only show open if someone has clocked in
+                if (!$isToday) {
+                    // Check if any employee clocked in during the early window
+                    $hasAnyMasuk = DB::table('pegawai_presensi')
+                        ->where('presensi_id', $presensi->id)
+                        ->whereNotNull('masuk')
+                        ->exists();
+                    
+                    // For past/future dates, is_open only if someone clocked in
+                    $isOpen = $hasAnyMasuk;
+                    $withinNow = false;
+                } else {
+                    // For today's presensi, use normal time window calculation
+                    $now = new \DateTime();
+                    $start = new \DateTime($tanggalStr . ' ' . $presensi->jam_mulai);
+                    $start->modify('-30 minutes'); // 30 menit sebelum jam_mulai
+                    $end = new \DateTime($tanggalStr . ' ' . $presensi->jam_selesai);
+                    $end->modify('+30 minutes'); // 30 menit setelah jam_selesai
+                    $withinNow = ($now >= $start && $now <= $end);
+                    
+                    // Session is open if:
+                    // - Within the normal window (30 min before jam_mulai to 30 min after jam_selesai)
+                    // - OR if employee has already clocked IN but not yet clocked OUT (can still clock out)
+                    $hasMasuk = $pivot && !empty($pivot['masuk']);
+                    $hasKeluar = $pivot && !empty($pivot['keluar']);
+                    
+                    // Also check if someone clocked in during the early window (30 min before jam_mulai)
+                    $hasAnyMasuk = false;
+                    if (!$hasMasuk) {
+                        // Check if any employee clocked in during the open window
+                        $anyMasuk = DB::table('pegawai_presensi')
+                            ->where('presensi_id', $presensi->id)
+                            ->whereNotNull('masuk')
+                            ->where('masuk', '>=', $start->format('H:i:s'))
+                            ->where('masuk', '<=', $presensi->jam_mulai)
+                            ->exists();
+                        $hasAnyMasuk = $anyMasuk;
+                    }
+                    
+                    $isOpen = ($now >= $start && $now < $end) || ($hasMasuk && !$hasKeluar) || $hasAnyMasuk;
+                }
+            } catch (\Exception $e) {
+                $withinNow = false;
+                $isOpen = false;
+            }
 
-        return response()->json([
-            'status' => 'success',
-            'data' => [
+            return [
                 'presensi' => [
                     'id' => $presensi->id,
-                    'tanggal' => $presensi->tanggal?->toDateString(),
+                    'tanggal' => $presensi->tanggal instanceof \DateTime 
+                        ? $presensi->tanggal->format('Y-m-d') 
+                        : $presensi->tanggal,
                     'jam_mulai' => $presensi->jam_mulai,
                     'jam_selesai' => $presensi->jam_selesai,
                     'catatan' => $presensi->catatan,
                 ],
                 'pivot' => $pivot,
                 'within_now' => $withinNow,
-            ],
+                'is_open' => $isOpen,
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $result,
         ]);
     }
 
@@ -372,7 +439,32 @@ class PresensiController extends Controller
         }
 
         $update = [];
-        if ($request->has('status')) $update['status'] = $request->input('status');
+        
+        // Auto-calculate late status if status is Hadir and masuk time is provided
+        if ($request->has('status') && $request->has('masuk')) {
+            $presensi = Presensi::find($id);
+            if ($presensi && $request->input('status') === 'Hadir') {
+                // Get just the date portion from tanggal
+                $tanggal = $presensi->tanggal instanceof \DateTime 
+                    ? $presensi->tanggal->format('Y-m-d') 
+                    : $presensi->tanggal;
+                
+                $scheduledStart = new \DateTime($tanggal . ' ' . $presensi->jam_mulai);
+                $actualMasuk = new \DateTime($tanggal . ' ' . $request->input('masuk'));
+                
+                // If actual masuk time is after scheduled start time, mark as late
+                if ($actualMasuk > $scheduledStart) {
+                    $update['status'] = 'Hadir (Telat)';
+                } else {
+                    $update['status'] = 'Hadir';
+                }
+            } else {
+                $update['status'] = $request->input('status');
+            }
+        } elseif ($request->has('status')) {
+            $update['status'] = $request->input('status');
+        }
+        
         if ($request->has('masuk')) $update['masuk'] = $request->input('masuk');
         if ($request->has('keluar')) $update['keluar'] = $request->input('keluar');
         if ($request->has('catatan')) $update['catatan'] = $request->input('catatan');
@@ -385,5 +477,130 @@ class PresensiController extends Controller
         }
 
         return response()->json(['status' => 'success'], 200);
+    }
+
+    /**
+     * API: Get riwayat presensi for logged in employee with monthly pagination/filter
+     */
+    public function riwayatPegawai(Request $request)
+    {
+        $sss = session('sss');
+        $akunId = $sss['usr'] ?? null;
+        
+        if (!$akunId) {
+            return response()->json(['status' => 'unauthorized', 'data' => []], 401);
+        }
+
+        // Get employee ID from akun
+        $pegawai = DB::table('pegawai')
+            ->where('akun_id', $akunId)
+            ->first();
+
+        if (!$pegawai) {
+            return response()->json(['status' => 'not-found', 'data' => []], 404);
+        }
+
+        $pegawaiId = $pegawai->id;
+        $bulan = $request->input('bulan'); // Format: YYYY-MM
+        $page = (int) $request->input('page', 1);
+        $perPage = (int) $request->input('per_page', 10);
+
+        $query = Presensi::query();
+
+        // Filter by month if provided
+        if ($bulan) {
+            $query->whereYear('tanggal', substr($bulan, 0, 4))
+                  ->whereMonth('tanggal', substr($bulan, 5, 2));
+        } else {
+            // Default: current month
+            $query->whereYear('tanggal', date('Y'))
+                  ->whereMonth('tanggal', date('m'));
+        }
+
+        $paginated = $query->orderBy('tanggal', 'desc')->paginate($perPage, ['*'], 'page', $page);
+
+        $ids = $paginated->pluck('id')->toArray();
+
+        // Get attendance data for this employee
+        $presensiData = [];
+        if (!empty($ids)) {
+            $rows = DB::table('pegawai_presensi')
+                ->where('pegawai_id', $pegawaiId)
+                ->whereIn('presensi_id', $ids)
+                ->get();
+
+            foreach ($rows as $row) {
+                $presensiData[$row->presensi_id] = [
+                    'status' => $row->status,
+                    'masuk' => $row->masuk,
+                    'keluar' => $row->keluar,
+                    'catatan' => $row->catatan,
+                ];
+            }
+        }
+
+        $collection = $paginated->getCollection()->map(function ($p) use ($presensiData) {
+            $data = $presensiData[$p->id] ?? null;
+            return [
+                'id' => $p->id,
+                'tanggal' => $p->tanggal?->toDateString(),
+                'tanggal_formatted' => $p->tanggal?->translatedFormat('l, d F Y'),
+                'jam_mulai' => $p->jam_mulai,
+                'jam_selesai' => $p->jam_selesai,
+                'catatan' => $p->catatan,
+                'pivot' => $data ? [
+                    'status' => $data['status'],
+                    'masuk' => $data['masuk'],
+                    'keluar' => $data['keluar'],
+                    'catatan' => $data['catatan'],
+                ] : null,
+            ];
+        });
+
+        $paginated->setCollection($collection);
+
+        // Calculate statistics for the month
+        $statsQuery = DB::table('pegawai_presensi as pp')
+            ->join('presensi as p', 'pp.presensi_id', '=', 'p.id')
+            ->where('pp.pegawai_id', $pegawaiId);
+
+        if ($bulan) {
+            $statsQuery->whereYear('p.tanggal', substr($bulan, 0, 4))
+                       ->whereMonth('p.tanggal', substr($bulan, 5, 2));
+        } else {
+            $statsQuery->whereYear('p.tanggal', date('Y'))
+                       ->whereMonth('p.tanggal', date('m'));
+        }
+
+        $stats = $statsQuery->select(
+            DB::raw('COUNT(*) as total'),
+            DB::raw("SUM(CASE WHEN status = 'Hadir' THEN 1 ELSE 0 END) as hadir"),
+            DB::raw("SUM(CASE WHEN status = 'Hadir (Telat)' THEN 1 ELSE 0 END) as telat"),
+            DB::raw("SUM(CASE WHEN status = 'Izin' THEN 1 ELSE 0 END) as izin"),
+            DB::raw("SUM(CASE WHEN status = 'Cuti' THEN 1 ELSE 0 END) as cuti"),
+            DB::raw("SUM(CASE WHEN status = 'Alpa' THEN 1 ELSE 0 END) as alpa")
+        )->first();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'items' => $paginated->items(),
+                'meta' => [
+                    'current_page' => $paginated->currentPage(),
+                    'last_page' => $paginated->lastPage(),
+                    'per_page' => $paginated->perPage(),
+                    'total' => $paginated->total(),
+                ],
+                'stats' => [
+                    'total' => $stats->total ?? 0,
+                    'hadir' => $stats->hadir ?? 0,
+                    'telat' => $stats->telat ?? 0,
+                    'izin' => $stats->izin ?? 0,
+                    'cuti' => $stats->cuti ?? 0,
+                    'alpa' => $stats->alpa ?? 0,
+                ],
+                'bulan' => $bulan ?? date('Y-m'),
+            ],
+        ]);
     }
 }
