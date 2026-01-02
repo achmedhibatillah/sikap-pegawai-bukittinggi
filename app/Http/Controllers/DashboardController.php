@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Pegawai;
+use App\Models\Cuti;
+use App\Models\JabatanAjuan;
+use App\Models\Kegiatan;
 
 class DashboardController extends Controller
 {
@@ -11,6 +15,39 @@ class DashboardController extends Controller
     {
         return Inertia::render('dashboard/index', [
             'sss' => session('sss')
+        ]);
+    }
+
+    public function stats()
+    {
+        $sss = session('sss');
+        if (($sss['acs'] ?? '') !== 'admin') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        // Total Pegawai
+        $totalPegawai = Pegawai::count();
+
+        // Cuti Menunggu (acc = false/belum diapprove)
+        $cutiPending = Cuti::where('acc', false)->count();
+
+        // Ajuan Jabatan Pending
+        $jabatanAjuanPending = JabatanAjuan::where('status', 'pending')->count();
+
+        // Kegiatan Aktif (sedang berlangsung - berdasarkan tanggal tunggal)
+        $kegiatanAktif = Kegiatan::whereDate('tanggal', now()->toDateString())->count();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'total_pegawai' => $totalPegawai,
+                'total_cuti_pending' => $cutiPending,
+                'total_jabatan_ajuan' => $jabatanAjuanPending,
+                'total_kegiatan_aktif' => $kegiatanAktif,
+            ]
         ]);
     }
 

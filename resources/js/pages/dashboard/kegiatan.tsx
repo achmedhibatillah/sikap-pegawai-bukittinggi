@@ -7,6 +7,8 @@ import * as Yup from "yup"
 import axios from "axios"
 import { FiPlus, FiChevronLeft, FiChevronRight, FiCalendar, FiClock, FiTrash2, FiEdit2 } from "react-icons/fi"
 import { IoIosSave } from "react-icons/io"
+import InputText from "@/component/input-text"
+import ErrorInput from "@/component/error-input"
 
 interface object_sss {
     usr?: string
@@ -20,6 +22,7 @@ interface DashboardPageProps {
 interface Kegiatan {
     id: string
     nama: string
+    deskripsi: string | null
     tanggal: string
     jam_mulai: string | null
     jam_selesai: string | null
@@ -143,9 +146,17 @@ const KegiatanPage = ({ sss }: DashboardPageProps) => {
                             {generateCalendarDays(currentDate, getKegiatanForDate).map((day, index) => (
                                 <div
                                     key={index}
-                                    onClick={() => day.date && setSelectedDate(day.date)}
+                                    onClick={() => {
+                                        if (day.date) {
+                                            // Clear selected kegiatan when clicking a different date
+                                            if (selectedDate && selectedDate.toDateString() !== day.date.toDateString()) {
+                                                setSelectedKegiatan(null);
+                                            }
+                                            setSelectedDate(day.date);
+                                        }
+                                    }}
                                     className={`
-                                        min-h-[100px] p-2 border rounded-lg cursor-pointer transition
+                                        min-h-[100px] p-2 border rounded cursor-pointer transition
                                         ${day.date ? 'bg-white hover:bg-gray-50' : 'bg-gray-50'}
                                         ${day.date && isToday(day.date!) ? 'ring-2 ring-green-500 ring-inset' : ''}
                                         ${day.date && isSelectedDate(day.date!) ? 'ring-2 ring-blue-500 ring-inset bg-blue-50' : ''}
@@ -163,12 +174,8 @@ const KegiatanPage = ({ sss }: DashboardPageProps) => {
                                                 {day.kegiatans?.slice(0, 3).map((k, i) => (
                                                     <div
                                                         key={i}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            setSelectedKegiatan(k)
-                                                        }}
                                                         className={`
-                                                            text-xs p-1 rounded truncate cursor-pointer
+                                                            text-xs p-1 rounded truncate
                                                             ${getWarnaClass(k.warna)} text-white
                                                         `}
                                                     >
@@ -190,17 +197,6 @@ const KegiatanPage = ({ sss }: DashboardPageProps) => {
 
                     {/* Sidebar */}
                     <div className="space-y-4">
-                        <Button 
-                            className="w-full" 
-                            onClick={() => {
-                                setSelectedDate(new Date())
-                                setOpenAddMenu(true)
-                            }}
-                        >
-                            <FiPlus className="inline mr-2" />
-                            Tambah Kegiatan
-                        </Button>
-
                         {selectedDate && (
                             <div className="bg-white rounded-lg shadow p-4">
                                 <div className="flex items-center gap-2 mb-3">
@@ -234,8 +230,9 @@ const KegiatanPage = ({ sss }: DashboardPageProps) => {
                                             <div
                                                 key={k.id}
                                                 className={`
-                                                    p-3 rounded-lg border cursor-pointer
+                                                    p-3 rounded-lg border cursor-pointer transition
                                                     ${getWarnaBg(k.warna)}
+                                                    ${selectedKegiatan?.id === k.id ? 'ring-2 ring-blue-500' : ''}
                                                 `}
                                                 onClick={() => setSelectedKegiatan(k)}
                                             >
@@ -261,6 +258,9 @@ const KegiatanPage = ({ sss }: DashboardPageProps) => {
                                     ${getWarnaBg(selectedKegiatan.warna)}
                                 `}>
                                     <div className="font-medium text-lg">{selectedKegiatan.nama}</div>
+                                    {selectedKegiatan.deskripsi && (
+                                        <div className="text-sm mt-2 opacity-80">{selectedKegiatan.deskripsi}</div>
+                                    )}
                                     <div className="flex items-center gap-2 mt-2 text-sm">
                                         <FiCalendar />
                                         {new Date(selectedKegiatan.tanggal).toLocaleDateString('id-ID', {
@@ -305,7 +305,7 @@ const KegiatanPage = ({ sss }: DashboardPageProps) => {
             {/* Add Modal */}
             {openAddMenu && selectedDate && (
                 <AddKegiatanModal
-                    tanggal={selectedDate.toISOString().split('T')[0]}
+                    selectedDate={selectedDate}
                     onClose={() => setOpenAddMenu(false)}
                     onSuccess={() => {
                         setOpenAddMenu(false)
@@ -319,8 +319,9 @@ const KegiatanPage = ({ sss }: DashboardPageProps) => {
                 <EditKegiatanModal
                     kegiatan={selectedKegiatan}
                     onClose={() => setOpenEditMenu(false)}
-                    onSuccess={() => {
+                    onSuccess={(updatedKegiatan) => {
                         setOpenEditMenu(false)
+                        setSelectedKegiatan(updatedKegiatan)
                         fetchKegiatans()
                     }}
                 />
@@ -379,15 +380,18 @@ export default KegiatanPage
 
 // Add Kegiatan Modal
 interface AddKegiatanModalProps {
-    tanggal: string
+    selectedDate: Date
     onClose: () => void
     onSuccess: () => void
 }
 
-const AddKegiatanModal = ({ tanggal, onClose, onSuccess }: AddKegiatanModalProps) => {
+const AddKegiatanModal = ({ selectedDate, onClose, onSuccess }: AddKegiatanModalProps) => {
+    const tanggal = selectedDate.toISOString().split('T')[0]
+    
     const formik = useFormik({
         initialValues: {
             nama: '',
+            deskripsi: '',
             tanggal: tanggal,
             jam_mulai: '',
             jam_selesai: '',
@@ -396,6 +400,7 @@ const AddKegiatanModal = ({ tanggal, onClose, onSuccess }: AddKegiatanModalProps
         },
         validationSchema: Yup.object({
             nama: Yup.string().required('Nama kegiatan wajib diisi').max(255),
+            deskripsi: Yup.string().nullable(),
             tanggal: Yup.date().required(),
             jam_mulai: Yup.string().nullable(),
             jam_selesai: Yup.string().nullable().test('after-start', 'Jam selesai harus setelah jam mulai', function(value) {
@@ -434,27 +439,37 @@ const AddKegiatanModal = ({ tanggal, onClose, onSuccess }: AddKegiatanModalProps
             <form onSubmit={formik.handleSubmit}>
                 <div className="mb-4">
                     <label className="block text-sm font-medium mb-1">Nama Kegiatan *</label>
-                    <input
+                    <InputText
                         type="text"
                         className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="Rapat Koordinasi"
                         {...formik.getFieldProps('nama')}
                     />
                     {formik.touched.nama && formik.errors.nama && (
-                        <div className="text-red-500 text-sm mt-1">{formik.errors.nama}</div>
+                        <ErrorInput className="mt-2">{formik.errors.nama}</ErrorInput>
                     )}
                 </div>
 
                 <div className="mb-4">
-                    <label className="block text-sm font-medium mb-1">Tanggal *</label>
-                    <input
-                        type="date"
+                    <label className="block text-sm font-medium mb-1">Deskripsi</label>
+                    <textarea
                         className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                        {...formik.getFieldProps('tanggal')}
+                        placeholder="Deskripsi kegiatan..."
+                        rows={3}
+                        {...formik.getFieldProps('deskripsi')}
                     />
-                    {formik.touched.tanggal && formik.errors.tanggal && (
-                        <div className="text-red-500 text-sm mt-1">{formik.errors.tanggal}</div>
-                    )}
+                </div>
+
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Tanggal *</label>
+                    <div className="p-2 bg-gray-100 rounded text-gray-700">
+                        {selectedDate.toLocaleDateString('id-ID', { 
+                            weekday: 'long', 
+                            day: 'numeric', 
+                            month: 'long',
+                            year: 'numeric'
+                        })}
+                    </div>
                 </div>
 
                 <div className="mb-4">
@@ -473,24 +488,24 @@ const AddKegiatanModal = ({ tanggal, onClose, onSuccess }: AddKegiatanModalProps
                     <div className="grid grid-cols-2 gap-3 mb-4">
                         <div>
                             <label className="block text-sm font-medium mb-1">Jam Mulai</label>
-                            <input
+                            <InputText
                                 type="time"
                                 className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                 {...formik.getFieldProps('jam_mulai')}
                             />
                             {formik.touched.jam_mulai && formik.errors.jam_mulai && (
-                                <div className="text-red-500 text-sm mt-1">{formik.errors.jam_mulai}</div>
+                                <ErrorInput className="mt-2">{formik.errors.jam_mulai}</ErrorInput>
                             )}
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Jam Selesai</label>
-                            <input
+                            <InputText
                                 type="time"
                                 className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                 {...formik.getFieldProps('jam_selesai')}
                             />
                             {formik.touched.jam_selesai && formik.errors.jam_selesai && (
-                                <div className="text-red-500 text-sm mt-1">{formik.errors.jam_selesai}</div>
+                                <ErrorInput className="mt-2">{formik.errors.jam_selesai}</ErrorInput>
                             )}
                         </div>
                     </div>
@@ -536,7 +551,7 @@ const AddKegiatanModal = ({ tanggal, onClose, onSuccess }: AddKegiatanModalProps
 interface EditKegiatanModalProps {
     kegiatan: Kegiatan
     onClose: () => void
-    onSuccess: () => void
+    onSuccess: (updatedKegiatan: Kegiatan) => void
 }
 
 const EditKegiatanModal = ({ kegiatan, onClose, onSuccess }: EditKegiatanModalProps) => {
@@ -544,7 +559,8 @@ const EditKegiatanModal = ({ kegiatan, onClose, onSuccess }: EditKegiatanModalPr
         initialValues: {
             id: kegiatan.id,
             nama: kegiatan.nama,
-            tanggal: kegiatan.tanggal,
+            deskripsi: kegiatan.deskripsi || '',
+            tanggal: kegiatan.tanggal.split('T')[0],
             jam_mulai: kegiatan.jam_mulai ? kegiatan.jam_mulai.substring(0, 5) : '',
             jam_selesai: kegiatan.jam_selesai ? kegiatan.jam_selesai.substring(0, 5) : '',
             is_fullday: kegiatan.is_fullday,
@@ -552,7 +568,7 @@ const EditKegiatanModal = ({ kegiatan, onClose, onSuccess }: EditKegiatanModalPr
         },
         validationSchema: Yup.object({
             nama: Yup.string().required('Nama kegiatan wajib diisi').max(255),
-            tanggal: Yup.date().required(),
+            deskripsi: Yup.string().nullable(),
             jam_mulai: Yup.string().nullable(),
             jam_selesai: Yup.string().nullable().test('after-start', 'Jam selesai harus setelah jam mulai', function(value) {
                 const { jam_mulai } = this.parent
@@ -567,7 +583,16 @@ const EditKegiatanModal = ({ kegiatan, onClose, onSuccess }: EditKegiatanModalPr
                 const response = await axios.post(`/api/kegiatan/${values.id}/update`, values)
                 if (response.data?.status === 'success') {
                     alert('Kegiatan berhasil diperbarui')
-                    onSuccess()
+                    // Create updated kegiatan object with new values
+                    const updatedKegiatan: Kegiatan = {
+                        ...kegiatan,
+                        nama: values.nama,
+                        jam_mulai: values.is_fullday ? null : values.jam_mulai,
+                        jam_selesai: values.is_fullday ? null : values.jam_selesai,
+                        is_fullday: values.is_fullday,
+                        warna: values.warna
+                    }
+                    onSuccess(updatedKegiatan)
                 } else {
                     alert('Gagal memperbarui kegiatan: ' + response.data?.message)
                 }
@@ -585,6 +610,14 @@ const EditKegiatanModal = ({ kegiatan, onClose, onSuccess }: EditKegiatanModalPr
         { value: 'biru', label: 'Biru', bg: 'bg-blue-500' }
     ]
 
+    // Format tanggal for display
+    const formattedTanggal = new Date(kegiatan.tanggal).toLocaleDateString('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    })
+
     return (
         <PopUpRight name="Edit Kegiatan" state={true} setState={onClose} dangerWhenClose={true}>
             <form onSubmit={formik.handleSubmit}>
@@ -592,27 +625,32 @@ const EditKegiatanModal = ({ kegiatan, onClose, onSuccess }: EditKegiatanModalPr
 
                 <div className="mb-4">
                     <label className="block text-sm font-medium mb-1">Nama Kegiatan *</label>
-                    <input
+                    <InputText
                         type="text"
                         className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="Rapat Koordinasi"
                         {...formik.getFieldProps('nama')}
                     />
                     {formik.touched.nama && formik.errors.nama && (
-                        <div className="text-red-500 text-sm mt-1">{formik.errors.nama}</div>
+                        <ErrorInput className="mt-2">{formik.errors.nama}</ErrorInput>
                     )}
                 </div>
 
                 <div className="mb-4">
-                    <label className="block text-sm font-medium mb-1">Tanggal *</label>
-                    <input
-                        type="date"
+                    <label className="block text-sm font-medium mb-1">Deskripsi</label>
+                    <textarea
                         className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                        {...formik.getFieldProps('tanggal')}
+                        placeholder="Deskripsi kegiatan..."
+                        rows={3}
+                        {...formik.getFieldProps('deskripsi')}
                     />
-                    {formik.touched.tanggal && formik.errors.tanggal && (
-                        <div className="text-red-500 text-sm mt-1">{formik.errors.tanggal}</div>
-                    )}
+                </div>
+
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Tanggal *</label>
+                    <div className="p-2 bg-gray-100 rounded text-gray-700">
+                        {formattedTanggal}
+                    </div>
                 </div>
 
                 <div className="mb-4">
@@ -631,24 +669,24 @@ const EditKegiatanModal = ({ kegiatan, onClose, onSuccess }: EditKegiatanModalPr
                     <div className="grid grid-cols-2 gap-3 mb-4">
                         <div>
                             <label className="block text-sm font-medium mb-1">Jam Mulai</label>
-                            <input
+                            <InputText
                                 type="time"
                                 className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                 {...formik.getFieldProps('jam_mulai')}
                             />
                             {formik.touched.jam_mulai && formik.errors.jam_mulai && (
-                                <div className="text-red-500 text-sm mt-1">{formik.errors.jam_mulai}</div>
+                                <ErrorInput className="mt-2">{formik.errors.jam_mulai}</ErrorInput>
                             )}
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Jam Selesai</label>
-                            <input
+                            <InputText
                                 type="time"
                                 className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                 {...formik.getFieldProps('jam_selesai')}
                             />
                             {formik.touched.jam_selesai && formik.errors.jam_selesai && (
-                                <div className="text-red-500 text-sm mt-1">{formik.errors.jam_selesai}</div>
+                                <ErrorInput className="mt-2">{formik.errors.jam_selesai}</ErrorInput>
                             )}
                         </div>
                     </div>
@@ -689,6 +727,7 @@ const EditKegiatanModal = ({ kegiatan, onClose, onSuccess }: EditKegiatanModalPr
         </PopUpRight>
     )
 }
+
 
 // Delete Kegiatan Modal
 interface DeleteKegiatanModalProps {

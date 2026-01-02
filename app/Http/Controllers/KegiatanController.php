@@ -24,7 +24,9 @@ class KegiatanController extends Controller
     {
         try {
             $sss = session('sss');
-            if (($sss['acs'] ?? '') !== 'admin') {
+            // Allow both admin and pegawai to access kegiatan list
+            $role = $sss['acs'] ?? '';
+            if (!in_array($role, ['admin', 'pegawai', 'kepala'])) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Unauthorized'
@@ -108,6 +110,7 @@ class KegiatanController extends Controller
 
             $validated = $request->validate([
                 'nama' => 'required|string|max:255',
+                'deskripsi' => 'nullable|string',
                 'tanggal' => 'required|date',
                 'jam_mulai' => 'nullable|date_format:H:i',
                 'jam_selesai' => 'nullable|date_format:H:i|after_or_equal:jam_mulai',
@@ -118,6 +121,7 @@ class KegiatanController extends Controller
             $kegiatan = Kegiatan::create([
                 'id' => (string) Str::uuid(),
                 'nama' => $validated['nama'],
+                'deskripsi' => $validated['deskripsi'] ?? null,
                 'tanggal' => $validated['tanggal'],
                 'jam_mulai' => $validated['jam_mulai'] ?? null,
                 'jam_selesai' => $validated['jam_selesai'] ?? null,
@@ -156,6 +160,7 @@ class KegiatanController extends Controller
 
             $validated = $request->validate([
                 'nama' => 'required|string|max:255',
+                'deskripsi' => 'nullable|string',
                 'tanggal' => 'required|date',
                 'jam_mulai' => 'nullable|date_format:H:i',
                 'jam_selesai' => 'nullable|date_format:H:i|after_or_equal:jam_mulai',
@@ -165,6 +170,7 @@ class KegiatanController extends Controller
 
             $kegiatan->update([
                 'nama' => $validated['nama'],
+                'deskripsi' => $validated['deskripsi'] ?? null,
                 'tanggal' => $validated['tanggal'],
                 'jam_mulai' => $validated['jam_mulai'] ?? null,
                 'jam_selesai' => $validated['jam_selesai'] ?? null,

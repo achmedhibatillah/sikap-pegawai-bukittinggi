@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { FiMenu, FiHome, FiUsers, FiLogOut, FiChevronLeft } from "react-icons/fi"
+import { FiMenu, FiHome, FiUsers, FiLogOut, FiChevronLeft, FiUser } from "react-icons/fi"
 import { LuClipboardList } from "react-icons/lu";
 import { PiTreeStructure } from "react-icons/pi";
 import { LuFileClock } from "react-icons/lu";
@@ -73,6 +73,12 @@ export const dashboardMenu: MenuItemConfig[] = [
 
     // Pegawai
     {
+        label: "Profil Saya",
+        icon: <FiUser />,
+        href: "/pg/profil",
+        roles: ["pegawai"]
+    },
+    {
         label: "Riwayat Presensi",
         icon: <LuClipboardList />,
         href: "/pg/presensi",
@@ -88,6 +94,12 @@ export const dashboardMenu: MenuItemConfig[] = [
         label: "Jabatan",
         icon: <PiTreeStructure />,
         href: "/pg/jabatan",
+        roles: ["pegawai"]
+    },
+    {
+        label: "Kegiatan",
+        icon: <TbCalendarClock />,
+        href: "/pg/kegiatan",
         roles: ["pegawai"]
     },
 

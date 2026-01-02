@@ -106,7 +106,7 @@ interface PegawaiDetailProps {
 }
 
 
-const PegawaiDetail = ({ pegawai, open, setOpen }: PegawaiDetailProps) => {
+export const PegawaiDetail = ({ pegawai, open, setOpen, akun }: PegawaiDetailProps & { akun?: any }) => {
     const [openEditMenu, setOpenEditMenu] = useState(false)
     const [openEditPhoto, setOpenEditPhoto] = useState(false)
     const [photoFile, setPhotoFile] = useState<File | null>(null)
@@ -118,6 +118,9 @@ const PegawaiDetail = ({ pegawai, open, setOpen }: PegawaiDetailProps) => {
     const [npwpFile, setNpwpFile] = useState<File | null>(null)
     const [npwpPreview, setNpwpPreview] = useState<string | null>(null)
     const [openEditAkun, setOpenEditAkun] = useState(false)
+
+    // Fallback untuk akun: gunakan props akun atau pegawai.akun
+    const currentAkun = akun ?? (pegawai as any)?.akun
 
     const jenisKelaminOptions = [
         { value: 'Laki-laki', label: 'Laki-laki' },
@@ -194,8 +197,8 @@ const PegawaiDetail = ({ pegawai, open, setOpen }: PegawaiDetailProps) => {
         enableReinitialize: true,
         initialValues: {
             id: pegawai?.akun_id ?? '',
-            email: (pegawai as any)?.akun?.email ?? '',
-            telp: (pegawai as any)?.akun?.telp ?? '',
+            email: currentAkun?.email ?? '',
+            telp: currentAkun?.telp ?? '',
             password: ''
         },
         validationSchema: Yup.object({
@@ -292,11 +295,11 @@ const PegawaiDetail = ({ pegawai, open, setOpen }: PegawaiDetailProps) => {
                                 </div>
                                 <div className="grid grid-cols-4 mb-3">
                                     <div className="text-gray-600">Email</div>
-                                    <div className="col-span-3 rounded bg-gray-100 p-3">{(pegawai as any)?.akun?.email ?? '-'}</div>
+                                    <div className="col-span-3 rounded bg-gray-100 p-3">{currentAkun?.email ?? '-'}</div>
                                 </div>
                                 <div className="grid grid-cols-4 mb-3">
                                     <div className="text-gray-600">Nomor telepon</div>
-                                    <div className="col-span-3 rounded bg-gray-100 p-3">+62{(pegawai as any)?.akun?.telp ?? '-'}</div>
+                                    <div className="col-span-3 rounded bg-gray-100 p-3">+62{currentAkun?.telp ?? '-'}</div>
                                 </div>
                                 <div className="grid grid-cols-4">
                                     <div className="text-gray-600">Password</div>

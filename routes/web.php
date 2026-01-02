@@ -81,13 +81,18 @@ Route::middleware([AuthAdminMiddleware::class])->group(function () {
     Route::post('/api/kegiatan/add', [KegiatanController::class, 'store']);
     Route::post('/api/kegiatan/{id}/update', [KegiatanController::class, 'update']);
     Route::delete('/api/kegiatan/{id}', [KegiatanController::class, 'destroy']);
+
+    // Dashboard stats API
+    Route::get('/api/dashboard/stats', [DashboardController::class, 'stats']);
 });
 
 Route::prefix('/pg')->group(function () {
     Route::get('/dashboard', [DashboardPegawaiController::class, 'index']);
+    Route::get('/profil', [DashboardPegawaiController::class, 'profil']);
     Route::get('/presensi', [DashboardPegawaiController::class, 'presensi']);
     Route::get('/cuti', [DashboardPegawaiController::class, 'cuti']);
     Route::get('/jabatan', [DashboardPegawaiController::class, 'jabatan']);
+    Route::get('/kegiatan', [DashboardPegawaiController::class, 'kegiatan']);
     Route::get('/api/presensi/riwayat', [PresensiController::class, 'riwayatPegawai']);
     Route::get('/api/cuti/my', [CutiController::class, 'myList']);
     Route::post('/api/cuti/add', [CutiController::class, 'add']);
@@ -96,6 +101,12 @@ Route::prefix('/pg')->group(function () {
     Route::get('/api/jabatan/my-ajuan', [JabatanController::class, 'myAjuan']);
     Route::get('/api/jabatan/all-active', [JabatanController::class, 'allActive']);
     Route::post('/api/jabatan/ajuan', [JabatanController::class, 'ajuanStore']);
+
+    // Kegiatan untuk pegawai (view only)
+    Route::get('/api/kegiatan', [KegiatanController::class, 'list']);
+    
+    // Profil API
+    Route::get('/api/me', [DashboardPegawaiController::class, 'me']);
 });
 
 Route::get('/s', function () {
@@ -105,9 +116,9 @@ Route::get('/s', function () {
     ]);
 });
 
-Route::get('/d', function () {
+Route::get('/logout', function () {
     session()->flush();
-    return redirect()->to('s');
+    return redirect()->to('/login');
 });
 
 
