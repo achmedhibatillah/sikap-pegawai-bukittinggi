@@ -66,21 +66,21 @@ export default function IndexPage() {
             </Head>
 
             {/* Navigation */}
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+            <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FFFCF7]/80 backdrop-blur-md border-b border-[#C2D8B9]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center">
+                            <div className="w-10 h-10 bg-gradient-to-br from-[#C2D8B9] to-[#A3C49A] rounded-xl flex items-center justify-center">
                                 <span className="text-white font-bold text-lg">S</span>
                             </div>
-                            <span className="text-xl font-bold text-gray-900">SIKAP</span>
+                            <span className="text-xl font-bold text-[#2D5016]">SIKAP</span>
                         </div>
                         <div className="flex items-center gap-4">
                             <Link
                                 href="/login"
-                                className="px-5 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg hover:from-blue-700 hover:to-indigo-800 transition-all shadow-lg shadow-blue-500/25"
+                                className="px-5 py-2 text-sm font-medium text-white bg-gradient-to-r from-[#2D5016] to-[#3D6B1E] rounded-lg hover:from-[#1D3009] hover:to-[#2D5016] transition-all shadow-lg shadow-green-500/25"
                             >
-                                Login
+                                Login sekarang
                             </Link>
                         </div>
                     </div>
@@ -88,25 +88,25 @@ export default function IndexPage() {
             </nav>
 
             {/* Hero Section */}
-            <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+            <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#FFFCF7] to-[#E4F0D0]">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center max-w-4xl mx-auto">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full text-blue-700 text-sm font-medium mb-8">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-                            Sistem Kepegawaiian Modern
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#C2D8B9]/50 rounded-full text-[#2D5016] text-sm font-medium mb-8">
+                            <span className="w-2 h-2 bg-[#2D5016] rounded-full animate-pulse"></span>
+                            Sistem Kepegawaian Modern
                         </div>
-                        <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                            Kelola Kepegawaiian
-                            <span className="bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent"> Lebih Mudah</span>
+                        <h1 className="text-5xl sm:text-6xl font-bold text-[#1D3009] mb-6 leading-tight">
+                            Kelola Kepegawaian
+                            <span className="bg-gradient-to-r from-[#2D5016] to-[#4A8022] bg-clip-text text-transparent"> Lebih Mudah</span>
                         </h1>
-                        <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+                        <p className="text-xl text-[#3D4D2A] mb-10 max-w-2xl mx-auto leading-relaxed">
                             SIKAP adalah sistem kepegawaian terintegrasi yang membantu organisasi 
                             mengelola presensi, cuti, jabatan, dan kegiatan dengan efisien.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link
                                 href="/login"
-                                className="w-full sm:w-auto px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl hover:from-blue-700 hover:to-indigo-800 transition-all shadow-xl shadow-blue-500/25 flex items-center justify-center gap-2"
+                                className="w-full sm:w-auto px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-[#2D5016] to-[#3D6B1E] rounded-xl hover:from-[#1D3009] hover:to-[#2D5016] transition-all shadow-xl shadow-green-500/25 flex items-center justify-center gap-2"
                             >
                                 Login Sekarang
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,7 +115,7 @@ export default function IndexPage() {
                             </Link>
                             <a
                                 href="#features"
-                                className="w-full sm:w-auto px-8 py-4 text-lg font-semibold text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all flex items-center justify-center"
+                                className="w-full sm:w-auto px-8 py-4 text-lg font-semibold text-[#2D5016] bg-white border-2 border-[#C2D8B9] rounded-xl hover:border-[#A3C49A] hover:bg-[#E4F0D0]/50 transition-all flex items-center justify-center"
                             >
                                 Pelajari Lebih Lanjut
                             </a>
@@ -124,29 +124,34 @@ export default function IndexPage() {
 
                     {/* Dashboard Preview */}
                     <div className="mt-20 relative">
-                        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent z-10 pointer-events-none"></div>
-                        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
-                            <div className="flex items-center gap-2 px-4 py-3 bg-gray-800/50 border-b border-gray-700">
-                                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#FFFCF7] via-transparent to-transparent z-10 pointer-events-none"></div>
+                        <div className="bg-gradient-to-br from-[#2D5016] to-[#1D3009] rounded-2xl shadow-2xl overflow-hidden border border-[#C2D8B9]">
+                            <div className="flex items-center gap-2 px-4 py-3 bg-[#1D3009]/50 border-b border-[#C2D8B9]/30">
+                                <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                                <div className="w-3 h-3 rounded-full bg-green-400"></div>
                             </div>
                             <div className="p-6">
                                 <div className="grid grid-cols-4 gap-4 mb-6">
-                                    {[
-                                        { label: "Total Pegawai", value: "128", color: "blue" },
-                                        { label: "Hadir Hari Ini", value: "124", color: "green" },
-                                        { label: "Cuti Pending", value: "8", color: "yellow" },
-                                        { label: "Kegiatan Aktif", value: "3", color: "purple" }
-                                    ].map((stat, index) => (
-                                        <div key={index} className={`bg-${stat.color}-500/20 rounded-xl p-4 border border-${stat.color}-500/30`}>
-                                            <p className="text-gray-400 text-sm">{stat.label}</p>
-                                            <p className="text-3xl font-bold text-white mt-1">{stat.value}</p>
-                                        </div>
-                                    ))}
+                                    <div className="bg-[#C2D8B9]/20 rounded-xl p-4 border border-[#C2D8B9]/30">
+                                        <p className="text-[#A3C49A] text-sm">Total Pegawai</p>
+                                        <p className="text-3xl font-bold text-white mt-1">128</p>
+                                    </div>
+                                    <div className="bg-[#C2D8B9]/20 rounded-xl p-4 border border-[#C2D8B9]/30">
+                                        <p className="text-[#A3C49A] text-sm">Hadir Hari Ini</p>
+                                        <p className="text-3xl font-bold text-white mt-1">124</p>
+                                    </div>
+                                    <div className="bg-[#C2D8B9]/20 rounded-xl p-4 border border-[#C2D8B9]/30">
+                                        <p className="text-[#A3C49A] text-sm">Cuti Pending</p>
+                                        <p className="text-3xl font-bold text-white mt-1">8</p>
+                                    </div>
+                                    <div className="bg-[#C2D8B9]/20 rounded-xl p-4 border border-[#C2D8B9]/30">
+                                        <p className="text-[#A3C49A] text-sm">Kegiatan Aktif</p>
+                                        <p className="text-3xl font-bold text-white mt-1">3</p>
+                                    </div>
                                 </div>
-                                <div className="h-48 bg-gray-700/50 rounded-xl flex items-center justify-center">
-                                    <p className="text-gray-500">Dashboard Preview</p>
+                                <div className="h-48 bg-[#1D3009]/50 rounded-xl flex items-center justify-center">
+                                    <p className="text-[#A3C49A]">Dashboard Preview</p>
                                 </div>
                             </div>
                         </div>
@@ -158,10 +163,10 @@ export default function IndexPage() {
             <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                        <h2 className="text-4xl font-bold text-[#1D3009] mb-4">
                             Fitur Lengkap & Modern
                         </h2>
-                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                        <p className="text-lg text-[#3D4D2A] max-w-2xl mx-auto">
                             SIKAP menyediakan berbagai fitur yang dibutuhkan untuk mengelola 
                             kepegawaian secara efektif dan efisien
                         </p>
@@ -171,13 +176,13 @@ export default function IndexPage() {
                         {features.map((feature, index) => (
                             <div
                                 key={index}
-                                className="group p-8 bg-gray-50 rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300"
+                                className="group p-8 bg-[#FFFCF7] rounded-2xl border border-[#C2D8B9] hover:border-[#A3C49A] hover:shadow-xl hover:shadow-green-500/5 transition-all duration-300"
                             >
-                                <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center text-blue-600 mb-6 group-hover:from-blue-500 group-hover:to-indigo-600 group-hover:text-white transition-all duration-300">
+                                <div className="w-14 h-14 bg-gradient-to-br from-[#E4F0D0] to-[#C2D8B9] rounded-xl flex items-center justify-center text-[#2D5016] mb-6 group-hover:from-[#C2D8B9] group-hover:to-[#A3C49A] group-hover:text-white transition-all duration-300">
                                     {feature.icon}
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                                <h3 className="text-xl font-bold text-[#1D3009] mb-3">{feature.title}</h3>
+                                <p className="text-[#3D4D2A] leading-relaxed">{feature.description}</p>
                             </div>
                         ))}
                     </div>
@@ -185,7 +190,7 @@ export default function IndexPage() {
             </section>
 
             {/* Stats Section */}
-            <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-600 to-indigo-700">
+            <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#2D5016] to-[#4A8022]">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                         {[
@@ -196,7 +201,7 @@ export default function IndexPage() {
                         ].map((stat, index) => (
                             <div key={index} className="text-center">
                                 <div className="text-4xl sm:text-5xl font-bold text-white mb-2">{stat.value}</div>
-                                <div className="text-blue-100">{stat.label}</div>
+                                <div className="text-[#E4F0D0]">{stat.label}</div>
                             </div>
                         ))}
                     </div>
@@ -204,18 +209,18 @@ export default function IndexPage() {
             </section>
 
             {/* CTA Section */}
-            <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+            <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#E4F0D0]">
                 <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                    <h2 className="text-4xl font-bold text-[#1D3009] mb-6">
                         Siap Mengoptimalkan Sistem Kepegawaian?
                     </h2>
-                    <p className="text-lg text-gray-600 mb-10">
-                        Bergabunglah dengan SIKAP dan rasakan kemudahan mengelola kepegawaiian 
+                    <p className="text-lg text-[#3D4D2A] mb-10">
+                        Bergabunglah dengan SIKAP dan rasakan kemudahan mengelola kepegawaian 
                         dalam satu sistem yang terintegrasi.
                     </p>
                     <Link
                         href="/login"
-                        className="inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl hover:from-blue-700 hover:to-indigo-800 transition-all shadow-xl shadow-blue-500/25"
+                        className="inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-[#2D5016] to-[#3D6B1E] rounded-xl hover:from-[#1D3009] hover:to-[#2D5016] transition-all shadow-xl shadow-green-500/25"
                     >
                         Mulai Menggunakan SIKAP
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,12 +231,12 @@ export default function IndexPage() {
             </section>
 
             {/* Footer */}
-            <footer className="bg-gray-900 text-gray-400 py-12 px-4 sm:px-6 lg:px-8">
+            <footer className="bg-[#1D3009] text-[#A3C49A] py-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center">
-                                <span className="text-white font-bold text-lg">S</span>
+                            <div className="w-10 h-10 bg-gradient-to-br from-[#C2D8B9] to-[#A3C49A] rounded-xl flex items-center justify-center">
+                                <span className="text-[#1D3009] font-bold text-lg">S</span>
                             </div>
                             <span className="text-xl font-bold text-white">SIKAP</span>
                         </div>
