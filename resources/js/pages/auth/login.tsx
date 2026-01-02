@@ -59,7 +59,7 @@ const LoginPage = () => {
           </h1>
           <p className="mt-1 text-sm italic leading-tight text-gray-600">
             Sistem Informasi Pegawai <br />
-            Puskesmas Bukittinggi
+            Puskesmas Tanahtinggi
           </p>
         </div>
 

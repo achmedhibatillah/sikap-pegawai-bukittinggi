@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardPegawaiController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JabatanController;
+use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Middleware\AuthAdminMiddleware;
@@ -36,6 +37,9 @@ Route::middleware([AuthAdminMiddleware::class])->group(function () {
     // Jabatan routes (admin)
     Route::get('/jabatan', [JabatanController::class, 'index']);
     Route::get('/jabatan-ajuan', [JabatanController::class, 'ajuanIndex']);
+
+    // Kegiatan routes (admin)
+    Route::get('/kegiatan', [DashboardController::class, 'kegiatan']);
 
     Route::get('/api/pegawai', [PegawaiController::class, 'index']);
     Route::get('/api/pegawai/{id}', [PegawaiController::class, 'detail']);
@@ -70,6 +74,13 @@ Route::middleware([AuthAdminMiddleware::class])->group(function () {
     Route::get('/api/jabatan-ajuan/pending-count', [JabatanController::class, 'pendingCount']);
     Route::post('/api/jabatan-ajuan/{id}/approve', [JabatanController::class, 'ajuanApprove']);
     Route::post('/api/jabatan-ajuan/{id}/reject', [JabatanController::class, 'ajuanReject']);
+
+    // Kegiatan API routes
+    Route::get('/api/kegiatan', [KegiatanController::class, 'list']);
+    Route::get('/api/kegiatan/{id}', [KegiatanController::class, 'detail']);
+    Route::post('/api/kegiatan/add', [KegiatanController::class, 'store']);
+    Route::post('/api/kegiatan/{id}/update', [KegiatanController::class, 'update']);
+    Route::delete('/api/kegiatan/{id}', [KegiatanController::class, 'destroy']);
 });
 
 Route::prefix('/pg')->group(function () {

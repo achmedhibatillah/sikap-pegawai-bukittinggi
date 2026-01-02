@@ -47,4 +47,15 @@ class DashboardController extends Controller
             'sss' => session('sss')
         ]);
     }
+
+    public function kegiatan()
+    {
+        $sss = session('sss');
+        if (($sss['acs'] ?? '') !== 'admin') {
+            return redirect('/dashboard');
+        }
+        return Inertia::render('dashboard/kegiatan', [
+            'sss' => session('sss')
+        ]);
+    }
 }
