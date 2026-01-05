@@ -59,7 +59,7 @@ class Jabatan extends Model
      */
     public function scopeAktif($query)
     {
-        return $query->where('aktif', true);
+        return $query->where('jabatan.aktif', true);
     }
 
     /**

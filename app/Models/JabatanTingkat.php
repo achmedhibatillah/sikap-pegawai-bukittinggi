@@ -41,7 +41,7 @@ class JabatanTingkat extends Model
      */
     public function scopeAktif($query)
     {
-        return $query->where('aktif', true);
+        return $query->where('jabatan_tingkatan.aktif', true);
     }
 
     /**

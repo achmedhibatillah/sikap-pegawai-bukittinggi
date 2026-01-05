@@ -30,6 +30,12 @@ interface JabatanTingkat {
     aktif: boolean
 }
 
+interface TingkatForm {
+    tingkat: string | number
+    nama: string
+    deskripsi: string
+}
+
 const JabatanPage = ({ sss }: DashboardPageProps) => {
     const [jabatanList, setJabatanList] = useState<Jabatan[]>([])
     const [tingkatList, setTingkatList] = useState<JabatanTingkat[]>([])
@@ -51,7 +57,7 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
     const [showAddTingkatPopup, setShowAddTingkatPopup] = useState(false)
     const [showEditTingkatPopup, setShowEditTingkatPopup] = useState(false)
     const [editingTingkat, setEditingTingkat] = useState<JabatanTingkat | null>(null)
-    const [tingkatForm, setTingkatForm] = useState({ tingkat: 1, nama: '', deskripsi: '' })
+    const [tingkatForm, setTingkatForm] = useState<TingkatForm>({ tingkat: '', nama: '', deskripsi: '' })
     const [tingkatAktif, setTingkatAktif] = useState(true)
     const [tingkatSearch, setTingkatSearch] = useState('')
     const [tingkatFilterAktif, setTingkatFilterAktif] = useState<string>('')
@@ -109,7 +115,6 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
     }
 
     useEffect(() => {
-        // Fetch tingkat list first for dropdown options
         fetchTingkatList()
 
         if (activeTab === 'jabatan') {
@@ -132,7 +137,7 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
     }
 
     const resetTingkatForm = () => {
-        setTingkatForm({ tingkat: 1, nama: '', deskripsi: '' })
+        setTingkatForm({ tingkat: '', nama: '', deskripsi: '' })
         setTingkatAktif(true)
         setEditingTingkat(null)
     }
@@ -158,7 +163,7 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
 
     const openEditTingkatPopup = (tingkat: JabatanTingkat) => {
         setEditingTingkat(tingkat)
-        setTingkatForm({ tingkat: tingkat.tingkat, nama: tingkat.nama, deskripsi: tingkat.deskripsi || '' })
+        setTingkatForm({ tingkat: tingkat.tingkat as string | number, nama: tingkat.nama, deskripsi: tingkat.deskripsi || '' })
         setTingkatAktif(tingkat.aktif)
         setShowEditTingkatPopup(true)
     }
@@ -264,10 +269,18 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
             setMessage({ type: 'error', text: 'Nama tingkat wajib diisi' })
             return
         }
+        if (!tingkatForm.tingkat) {
+            setMessage({ type: 'error', text: 'Tingkat wajib diisi' })
+            return
+        }
 
         setSubmitLoading(true)
         try {
-            const resp = await axios.post('/api/jabatan-tingkat/add', tingkatForm)
+            const resp = await axios.post('/api/jabatan-tingkat/add', {
+                tingkat: Number(tingkatForm.tingkat),
+                nama: tingkatForm.nama,
+                deskripsi: tingkatForm.deskripsi
+            })
             if (resp.data?.status === 'success') {
                 setMessage({ type: 'success', text: 'Tingkat berhasil ditambahkan' })
                 setShowAddTingkatPopup(false)
@@ -287,10 +300,17 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
     const handleUpdateTingkat = async () => {
         if (!editingTingkat) return
 
+        if (!tingkatForm.tingkat) {
+            setMessage({ type: 'error', text: 'Tingkat wajib diisi' })
+            return
+        }
+
         setSubmitLoading(true)
         try {
             const resp = await axios.post(`/api/jabatan-tingkat/${editingTingkat.id}/update`, {
-                ...tingkatForm,
+                tingkat: Number(tingkatForm.tingkat),
+                nama: tingkatForm.nama,
+                deskripsi: tingkatForm.deskripsi,
                 aktif: tingkatAktif
             })
             if (resp.data?.status === 'success') {
@@ -401,13 +421,11 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
         return tingkatList.filter(t => t.aktif).sort((a, b) => a.tingkat - b.tingkat)
     }
 
-    // Generate dropdown options from actual Tingkat Jabatan data
     const tingkatOptions = getActiveTingkatOptions().map(t => ({
         value: t.id.toString(),
         label: `Tingkat ${t.tingkat} - ${t.nama || 'Eselon ' + t.tingkat}`
     }))
 
-    // Helper to determine which content to show based on active tab
     const renderTabs = () => (
         <div className="flex gap-2 mb-6">
             <button
@@ -876,14 +894,15 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Tingkat <span className="text-red-500">*</span>
-                            <span className="text-gray-400 font-normal ml-1">(angka urutan/eselon)</span>
+                            <span className="text-gray-400 font-normal ml-1">(angka urutan/eselon, bebas)</span>
                         </label>
-                        <InputText
+                        <input
                             type="number"
+                            min="1"
                             value={tingkatForm.tingkat}
-                            onChange={(e: any) => setTingkatForm({ ...tingkatForm, tingkat: parseInt(e.target.value) || 1 })}
+                            onChange={(e) => setTingkatForm({ ...tingkatForm, tingkat: e.target.value ? parseInt(e.target.value) : '' })}
                             placeholder="Contoh: 1"
-                            className="w-full"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                         />
                     </div>
 
@@ -940,14 +959,15 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Tingkat <span className="text-red-500">*</span>
-                            <span className="text-gray-400 font-normal ml-1">(angka urutan/eselon)</span>
+                            <span className="text-gray-400 font-normal ml-1">(angka urutan/eselon, bebas)</span>
                         </label>
-                        <InputText
+                        <input
                             type="number"
+                            min="1"
                             value={tingkatForm.tingkat}
-                            onChange={(e: any) => setTingkatForm({ ...tingkatForm, tingkat: parseInt(e.target.value) || 1 })}
+                            onChange={(e) => setTingkatForm({ ...tingkatForm, tingkat: e.target.value ? parseInt(e.target.value) : '' })}
                             placeholder="Contoh: 1"
-                            className="w-full"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                         />
                     </div>
 

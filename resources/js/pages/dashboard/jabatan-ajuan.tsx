@@ -14,10 +14,14 @@ interface DashboardPageProps {
 
 interface Jabatan {
     id: string
-    tingkatan: number
     nama: string
     deskripsi: string
     aktif: boolean
+    jabatan_tingkatan_id: number
+    tingkat?: {
+        tingkat: number
+        nama: string
+    }
 }
 
 interface JabatanAjuan {
@@ -135,11 +139,12 @@ const JabatanAjuanPage = ({ sss }: DashboardPageProps) => {
         }
     }
 
-    const getTingkatBadge = (tingkat: number) => {
+    const getTingkatBadge = (jabatan: Jabatan) => {
+        const tingkatNum = jabatan.tingkat?.tingkat ?? 0
         const colors: Record<number, string> = { 1: 'bg-blue-100 text-blue-700', 2: 'bg-purple-100 text-purple-700', 3: 'bg-gray-100 text-gray-700' }
-        const labels: Record<number, string> = { 1: 'Struktural', 2: 'Fungsional', 3: 'Pelaksana' }
-        const color = colors[tingkat] || 'bg-gray-100 text-gray-700'
-        return <span className={`px-2 py-0.5 text-xs rounded ${color}`}>{labels[tingkat] || 'Lainnya'}</span>
+        const labels: Record<number, string> = { 1: 'Tingkat 1', 2: 'Tingkat 2', 3: 'Tingkat 3', 4: 'Tingkat 4', 5: 'Tingkat 5' }
+        const color = colors[tingkatNum] || 'bg-gray-100 text-gray-700'
+        return <span className={`px-2 py-0.5 text-xs rounded ${color}`}>{labels[tingkatNum] || `Tingkat ${tingkatNum}`}</span>
     }
 
     const pendingCount = ajuanList.filter(a => a.status === 'pending').length
@@ -215,7 +220,7 @@ const JabatanAjuanPage = ({ sss }: DashboardPageProps) => {
                                                 <span className="text-sm text-gray-600">{ajuan.jabatan_lama ? ajuan.jabatan_lama.nama : <span className="italic text-gray-400">Tanpa Jabatan</span>}</span>
                                                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                                                 <span className="font-semibold text-gray-800">{ajuan.jabatan_baru.nama}</span>
-                                                {getTingkatBadge(ajuan.jabatan_baru.tingkatan)}
+                                                {getTingkatBadge(ajuan.jabatan_baru)}
                                             </div>
                                             {ajuan.alasan && <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded mb-2">{ajuan.alasan}</p>}
                                             <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">

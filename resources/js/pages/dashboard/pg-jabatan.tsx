@@ -15,10 +15,14 @@ interface DashboardPageProps {
 
 interface Jabatan {
     id: string
-    tingkatan: number
     nama: string
     deskripsi: string
     aktif: boolean
+    jabatan_tingkatan_id: number
+    tingkat?: {
+        tingkat: number
+        nama: string
+    }
 }
 
 interface JabatanAjuan {
@@ -148,7 +152,8 @@ const PgJabatanPage = ({ sss }: DashboardPageProps) => {
             4: { label: 'Tingkat 4', color: 'text-gray-700', bg: 'bg-gray-100', border: 'border-gray-300' },
             5: { label: 'Tingkat 5', color: 'text-gray-500', bg: 'bg-gray-50', border: 'border-gray-200' },
         }
-        const tingkat = tingkatMap[jabatan.tingkatan] || { label: `Tingkat ${jabatan.tingkatan}`, color: 'text-gray-700', bg: 'bg-gray-100', border: 'border-gray-300' }
+        const tingkatNum = jabatan.tingkat?.tingkat ?? 0
+        const tingkat = tingkatMap[tingkatNum] || { label: `Tingkat ${tingkatNum}`, color: 'text-gray-700', bg: 'bg-gray-100', border: 'border-gray-300' }
         return (
             <span className={`px-2 py-0.5 text-xs rounded border ${tingkat.bg} ${tingkat.color} ${tingkat.border}`}>
                 {tingkat.label}
@@ -312,7 +317,7 @@ const PgJabatanPage = ({ sss }: DashboardPageProps) => {
                             <option value="">-- Pilih Jabatan --</option>
                             {jabatanList.map((j) => (
                                 <option key={j.id} value={j.id}>
-                                    {j.nama} (Tingkat {j.tingkatan})
+                                    {j.nama} (Tingkat {j.tingkat?.tingkat ?? j.jabatan_tingkatan_id})
                                 </option>
                             ))}
                         </select>
