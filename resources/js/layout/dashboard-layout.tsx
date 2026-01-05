@@ -38,13 +38,13 @@ export const dashboardMenu: MenuItemConfig[] = [
         label: "Pegawai",
         icon: <FiUsers />,
         href: "/pegawai",
-        roles: ["admin"]
+        roles: ["admin", "kepala"]
     },
     {
         label: "Presensi",
         icon: <LuClipboardList />,
         href: "/presensi",
-        roles: ["admin"]
+        roles: ["admin", "kepala"]
     },
     {
         label: "Cuti",
@@ -62,7 +62,7 @@ export const dashboardMenu: MenuItemConfig[] = [
         label: "Jabatan Ajuan",
         icon: <LuFileClock />,
         href: "/jabatan-ajuan",
-        roles: ["admin", "kepala"]
+        roles: ["kepala"]
     },
     {
         label: "Kegiatan",
@@ -144,8 +144,10 @@ const DashboardLayout = ({ sss, now, children, onClick }: DashboardLayoutProps) 
                 w-64
                 `}
             >
-                <div className={`h-16 flex items-center justify-between px-4 border-b border-white/10 
-                ${sidebarCollapse && 'lg:flex lg:justify-center'}`}>
+                <div className={`h-16 flex items-center justify-between px-4 border-b border-white/10  cursor-pointer
+                    ${sidebarCollapse && 'lg:flex lg:justify-center'}`}
+                    onClick={() => window.location.href = "/dashboard"}
+                >
                 {!sidebarCollapse && (
                     <span className="font-extrabold text-lg tracking-wide">
                     SIKAP

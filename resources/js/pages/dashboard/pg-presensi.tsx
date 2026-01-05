@@ -94,6 +94,11 @@ const PgPresensiPage = ({ sss }: { sss?: object_sss | null }) => {
         }
     }
 
+    const handleDownload = () => {
+        const url = `/pg/api/presensi/download-laporan-pegawai?bulan=${bulan}`
+        window.open(url, '_blank')
+    }
+
     const getStatusBadge = (status: string) => {
         const config: Record<string, { bg: string; text: string; label: string }> = {
             'Hadir': { bg: 'bg-emerald-100 text-emerald-700', text: 'Hadir', label: 'Hadir' },
@@ -151,6 +156,12 @@ const PgPresensiPage = ({ sss }: { sss?: object_sss | null }) => {
                         className="bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
                     >
                         Bulan Ini
+                    </Button>
+                    <Button
+                        onClick={handleDownload}
+                        className="bg-emerald-600 text-white hover:bg-emerald-700"
+                    >
+                        Unduh Laporan
                     </Button>
                 </div>
 

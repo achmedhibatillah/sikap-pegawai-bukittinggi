@@ -5,6 +5,7 @@ import Button from "@/component/button"
 import PopUpRight from "@/component/popup-right"
 import PresensiAdd from "@/section/presensi-add"
 import InputText from "@/component/input-text"
+import { IoMdDownload } from "react-icons/io";
 
 interface object_sss {
     usr?: string
@@ -47,6 +48,7 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
     const [items, setItems] = useState<PresensiItem[]>([])
     const [meta, setMeta] = useState<Meta | null>(null)
     const [loading, setLoading] = useState(false)
+    const [downloading, setDownloading] = useState(false)
 
     useEffect(() => {
         fetchData()
@@ -82,6 +84,30 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
     const handleFilter = () => {
         setPage(1)
         fetchData(1)
+    }
+
+    const handleDownloadLaporan = async () => {
+        setDownloading(true)
+        try {
+            const params = new URLSearchParams()
+            if (from) params.append('from', from)
+            if (to) params.append('to', to)
+
+            const url = `/api/presensi/download-laporan?${params.toString()}`
+            
+            // Create anchor element and trigger download
+            const link = document.createElement('a')
+            link.href = url
+            link.setAttribute('download', '')
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+        } catch (err) {
+            console.error('Download failed:', err)
+            alert('Gagal mengunduh laporan')
+        } finally {
+            setDownloading(false)
+        }
     }
 
     const handleClearFilter = () => {
@@ -136,25 +162,9 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
                             karyawan
                         </p>
                     </div>
-                    <Button
-                        onClick={() => setOpenAddMenu(true)}
-                        className="flex items-center gap-2"
-                    >
-                        <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 4v16m8-8H4"
-                            />
-                        </svg>
-                        Tambah Sesi
-                    </Button>
+                    <div className="flex">
+                        <Button onClick={() => setOpenAddMenu(true)} className="flex items-center gap-2">+ Tambah Sesi</Button>
+                    </div>
                 </div>
 
                 {/* Filter Section */}
@@ -288,6 +298,13 @@ const PresensiPage = ({ sss }: DashboardPageProps) => {
                 {/* Presensi List */}
                 {!loading && items.length > 0 && (
                     <div className="space-y-4">
+                        <Button 
+                            onClick={handleDownloadLaporan}
+                            disabled={downloading}
+                        >
+                            <IoMdDownload className="inline me-1" />
+                            {downloading ? 'Mengunduh...' : 'Unduh laporan'}
+                        </Button>
                         {items.map((s) => (
                             <div
                                 key={s.id}

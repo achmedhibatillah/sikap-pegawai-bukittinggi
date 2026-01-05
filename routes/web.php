@@ -47,6 +47,7 @@ Route::middleware([AuthAdminMiddleware::class])->group(function () {
     Route::post('/api/presensi/add', [\App\Http\Controllers\PresensiController::class, 'add']);
     Route::post('/api/presensi/{id}/attendance', [\App\Http\Controllers\PresensiController::class, 'addAttendance']);
     Route::get('/api/presensi', [\App\Http\Controllers\PresensiController::class, 'list']);
+    Route::get('/api/presensi/download-laporan', [\App\Http\Controllers\PresensiController::class, 'downloadLaporan']);
     Route::get('/api/presensi/{id}', [\App\Http\Controllers\PresensiController::class, 'detailApi']);
     Route::post('/api/presensi/{id}/pegawai/{pegawai_id}/update', [\App\Http\Controllers\PresensiController::class, 'updatePegawaiPresensi']);
     Route::post('/api/pegawai/add', [PegawaiController::class, 'add']);
@@ -68,6 +69,14 @@ Route::middleware([AuthAdminMiddleware::class])->group(function () {
     Route::post('/api/jabatan/{id}/update', [JabatanController::class, 'update']);
     Route::delete('/api/jabatan/{id}', [JabatanController::class, 'destroy']);
     Route::post('/api/jabatan/{id}/restore', [JabatanController::class, 'restore']);
+
+    // Jabatan Tingkat API routes (admin)
+    Route::get('/api/jabatan-tingkat', [JabatanController::class, 'tingkatList']);
+    Route::get('/api/jabatan-tingkat/all-active', [JabatanController::class, 'tingkatAllActive']);
+    Route::post('/api/jabatan-tingkat/add', [JabatanController::class, 'tingkatStore']);
+    Route::post('/api/jabatan-tingkat/{id}/update', [JabatanController::class, 'tingkatUpdate']);
+    Route::delete('/api/jabatan-tingkat/{id}', [JabatanController::class, 'tingkatDestroy']);
+    Route::post('/api/jabatan-tingkat/{id}/restore', [JabatanController::class, 'tingkatRestore']);
 
     // Jabatan Ajuan API routes
     Route::get('/api/jabatan-ajuan', [JabatanController::class, 'ajuanList']);
@@ -94,6 +103,7 @@ Route::prefix('/pg')->group(function () {
     Route::get('/jabatan', [DashboardPegawaiController::class, 'jabatan']);
     Route::get('/kegiatan', [DashboardPegawaiController::class, 'kegiatan']);
     Route::get('/api/presensi/riwayat', [PresensiController::class, 'riwayatPegawai']);
+    Route::get('/api/presensi/download-laporan-pegawai', [PresensiController::class, 'downloadLaporanPegawai']);
     Route::get('/api/cuti/my', [CutiController::class, 'myList']);
     Route::post('/api/cuti/add', [CutiController::class, 'add']);
 

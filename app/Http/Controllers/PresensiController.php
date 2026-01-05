@@ -8,9 +8,15 @@ use App\Models\Presensi;
 use App\Models\PegawaiPresensi;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 use App\Models\Pegawai;
 use App\Models\Cuti;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class PresensiController extends Controller
 {
@@ -601,6 +607,309 @@ class PresensiController extends Controller
                 ],
                 'bulan' => $bulan ?? date('Y-m'),
             ],
+        ]);
+    }
+
+
+    public function downloadLaporan(Request $request)
+    {
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        if (!$from) {
+            $from = date('Y-m-01');
+        }
+        if (!$to) {
+            $to = date('Y-m-t');
+        }
+
+        $presensiQuery = Presensi::whereBetween('tanggal', [$from, $to]);
+        $presensiIds = $presensiQuery->pluck('id')->toArray();
+        $totalHariKerja = count($presensiIds);
+
+        $periode = Carbon::parse($from)->translatedFormat('l, d F Y') . 
+                   ' - ' . 
+                   Carbon::parse($to)->translatedFormat('l, d F Y');
+
+        $spreadsheet = new Spreadsheet();
+        
+        $sheet1 = $spreadsheet->getActiveSheet();
+        $sheet1->setTitle('Rekap Presensi');
+
+        $headerStyle = [
+            'font' => ['bold' => true],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFE8F5E9']],
+        ];
+
+        $bodyStyle = [
+            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+        ];
+
+        $sheet1->setCellValue('A1', 'LAPORAN REKAP PRESENSI');
+        $sheet1->mergeCells('A1:G1');
+        $sheet1->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet1->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $sheet1->setCellValue('A2', 'Periode: ' . $periode);
+        $sheet1->mergeCells('A2:G2');
+        $sheet1->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $headers1 = ['No', 'Nama Pegawai', 'Hadir', 'Izin', 'Sakit', 'Alpha', 'Total Hari Kerja'];
+        $col = 'A';
+        foreach ($headers1 as $header) {
+            $sheet1->setCellValue($col . '4', $header);
+            $col++;
+        }
+        $sheet1->getStyle('A4:G4')->applyFromArray($headerStyle);
+
+        $sheet1->getColumnDimension('A')->setWidth(6);
+        $sheet1->getColumnDimension('B')->setWidth(25);
+        $sheet1->getColumnDimension('C')->setWidth(10);
+        $sheet1->getColumnDimension('D')->setWidth(10);
+        $sheet1->getColumnDimension('E')->setWidth(10);
+        $sheet1->getColumnDimension('F')->setWidth(10);
+        $sheet1->getColumnDimension('G')->setWidth(15);
+
+        $pegawais = Pegawai::orderBy('nama', 'asc')->get();
+
+        $row = 5;
+        $no = 1;
+        foreach ($pegawais as $pegawai) {
+            $stats = DB::table('pegawai_presensi')
+                ->where('pegawai_id', $pegawai->id)
+                ->whereIn('presensi_id', $presensiIds)
+                ->select(
+                    DB::raw("SUM(CASE WHEN status IN ('Hadir', 'Hadir (Telat)') THEN 1 ELSE 0 END) as hadir"),
+                    DB::raw("SUM(CASE WHEN status = 'Izin' THEN 1 ELSE 0 END) as izin"),
+                    DB::raw("SUM(CASE WHEN status = 'Sakit' THEN 1 ELSE 0 END) as sakit"),
+                    DB::raw("SUM(CASE WHEN status = 'Alpa' THEN 1 ELSE 0 END) as alpha")
+                )
+                ->first();
+
+            $sheet1->setCellValue('A' . $row, $no);
+            $sheet1->setCellValue('B' . $row, $pegawai->nama);
+            $sheet1->setCellValue('C' . $row, $stats->hadir ?? 0);
+            $sheet1->setCellValue('D' . $row, $stats->izin ?? 0);
+            $sheet1->setCellValue('E' . $row, $stats->sakit ?? 0);
+            $sheet1->setCellValue('F' . $row, $stats->alpha ?? 0);
+            $sheet1->setCellValue('G' . $row, $totalHariKerja);
+
+            $sheet1->getStyle('A' . $row . ':G' . $row)->applyFromArray($bodyStyle);
+            $sheet1->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet1->getStyle('C' . $row . ':G' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            $row++;
+            $no++;
+        }
+
+        $sheet2 = $spreadsheet->createSheet();
+        $sheet2->setTitle('Data Pegawai');
+
+        $sheet2->setCellValue('A1', 'DATA PEGAWAI');
+        $sheet2->mergeCells('A1:E1');
+        $sheet2->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet2->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $headers2 = ['NIP', 'Nama Pegawai', 'Jabatan', 'Unit Kerja', 'Status'];
+        $col = 'A';
+        foreach ($headers2 as $header) {
+            $sheet2->setCellValue($col . '3', $header);
+            $col++;
+        }
+        $sheet2->getStyle('A3:E3')->applyFromArray($headerStyle);
+
+        $sheet2->getColumnDimension('A')->setWidth(15);
+        $sheet2->getColumnDimension('B')->setWidth(25);
+        $sheet2->getColumnDimension('C')->setWidth(20);
+        $sheet2->getColumnDimension('D')->setWidth(20);
+        $sheet2->getColumnDimension('E')->setWidth(12);
+
+        $row = 4;
+        foreach ($pegawais as $pegawai) {
+            $currentJabatan = $pegawai->currentJabatan()->first();
+            $jabatanName = $currentJabatan ? $currentJabatan->nama : '-';
+
+            $sheet2->setCellValue('A' . $row, '-');
+            $sheet2->setCellValue('B' . $row, $pegawai->nama);
+            $sheet2->setCellValue('C' . $row, $jabatanName);
+            $sheet2->setCellValue('D' . $row, 'Puskesmas Tanah Tinggi');
+            $sheet2->setCellValue('E' . $row, 'Aktif');
+
+            $sheet2->getStyle('A' . $row . ':E' . $row)->applyFromArray($bodyStyle);
+            $sheet2->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet2->getStyle('E' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            $row++;
+        }
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        $filename = 'laporan_presensi_' . date('Y-m-d_H-i-s') . '.xlsx';
+
+        $writer = new Xlsx($spreadsheet);
+        
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    /**
+     * Download laporan presensi untuk pegawai (single sheet)
+     */
+    public function downloadLaporanPegawai(Request $request)
+    {
+        $sss = session('sss');
+        $akunId = $sss['usr'] ?? null;
+        
+        if (!$akunId) {
+            return response()->json(['status' => 'unauthorized'], 401);
+        }
+
+        // Get employee ID from akun
+        $pegawai = DB::table('pegawai')
+            ->where('akun_id', $akunId)
+            ->first();
+
+        if (!$pegawai) {
+            return response()->json(['status' => 'not-found'], 404);
+        }
+
+        $pegawaiId = $pegawai->id;
+        $bulan = $request->input('bulan', date('Y-m'));
+
+        // Get presensi data for this employee in the month
+        $query = Presensi::query()
+            ->whereYear('tanggal', substr($bulan, 0, 4))
+            ->whereMonth('tanggal', substr($bulan, 5, 2))
+            ->orderBy('tanggal', 'asc');
+
+        $presensis = $query->get();
+
+        // Get attendance data
+        $presensiIds = $presensis->pluck('id')->toArray();
+        $presensiData = [];
+        
+        if (!empty($presensiIds)) {
+            $rows = DB::table('pegawai_presensi')
+                ->where('pegawai_id', $pegawaiId)
+                ->whereIn('presensi_id', $presensiIds)
+                ->get();
+
+            foreach ($rows as $row) {
+                $presensiData[$row->presensi_id] = [
+                    'status' => $row->status,
+                    'masuk' => $row->masuk,
+                    'keluar' => $row->keluar,
+                    'catatan' => $row->catatan,
+                ];
+            }
+        }
+
+        // Format periode
+        $periode = Carbon::parse($bulan . '-01')->translatedFormat('l, d F Y') . 
+                   ' - ' . 
+                   Carbon::parse($bulan . '-01')->endOfMonth()->translatedFormat('l, d F Y');
+
+        // Create new Spreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Style headers
+        $headerStyle = [
+            'font' => ['bold' => true],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFE8F5E9']],
+        ];
+
+        $bodyStyle = [
+            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+        ];
+
+        $centerStyle = [
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+        ];
+
+        // Title
+        $sheet->setCellValue('A1', 'LAPORAN REKAP PRESENSI');
+        $sheet->mergeCells('A1:E1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Periode
+        $sheet->setCellValue('A2', 'Periode: ' . $periode);
+        $sheet->mergeCells('A2:E2');
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Pegawai
+        $sheet->setCellValue('A3', 'Pegawai: ' . $pegawai->nama);
+        $sheet->mergeCells('A3:E3');
+        $sheet->getStyle('A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Headers
+        $headers = ['Tanggal', 'Jam Masuk', 'Jam Pulang', 'Status', 'Keterangan'];
+        $col = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue($col . '5', $header);
+            $col++;
+        }
+        $sheet->getStyle('A5:E5')->applyFromArray($headerStyle);
+
+        // Set column widths
+        $sheet->getColumnDimension('A')->setWidth(15);
+        $sheet->getColumnDimension('B')->setWidth(12);
+        $sheet->getColumnDimension('C')->setWidth(12);
+        $sheet->getColumnDimension('D')->setWidth(15);
+        $sheet->getColumnDimension('E')->setWidth(25);
+
+        // Fill data
+        $row = 6;
+        foreach ($presensis as $presensi) {
+            $data = $presensiData[$presensi->id] ?? null;
+            
+            // Format tanggal
+            $tanggal = $presensi->tanggal instanceof \DateTime 
+                ? $presensi->tanggal->format('Y-m-d')
+                : (string) $presensi->tanggal;
+
+            // Format waktu
+            $jamMasuk = $data['masuk'] ?? null;
+            $jamPulang = $data['keluar'] ?? null;
+            $status = $data['status'] ?? 'Alpa';
+            $keterangan = $data['catatan'] ?? '';
+
+            $sheet->setCellValue('A' . $row, $tanggal);
+            $sheet->setCellValue('B' . $row, $jamMasuk ? substr($jamMasuk, 0, 5) : '-');
+            $sheet->setCellValue('C' . $row, $jamPulang ? substr($jamPulang, 0, 5) : '-');
+            $sheet->setCellValue('D' . $row, $status);
+            $sheet->setCellValue('E' . $row, $keterangan);
+
+            $sheet->getStyle('A' . $row)->applyFromArray($centerStyle);
+            $sheet->getStyle('B' . $row)->applyFromArray($centerStyle);
+            $sheet->getStyle('C' . $row)->applyFromArray($centerStyle);
+            $sheet->getStyle('D' . $row)->applyFromArray($centerStyle);
+            $sheet->getStyle('E' . $row)->applyFromArray($bodyStyle);
+
+            $row++;
+        }
+
+        // Generate filename
+        $filename = 'laporan_presensi_' . $bulan . '_' . date('Y-m-d_H-i-s') . '.xlsx';
+
+        // Create response
+        $writer = new Xlsx($spreadsheet);
+        
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }
 }

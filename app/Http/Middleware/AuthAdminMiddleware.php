@@ -15,18 +15,13 @@ class AuthAdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Session disimpan sebagai session('sss.usr') dan session('sss.acs')
         $sss = session('sss');
         $userId = $sss['usr'] ?? null;
         $role = $sss['acs'] ?? null;
         
-        // Redirect ke login jika belum login sama sekali
         if (!$userId) {
             return redirect('/login');
         }
-        // Untuk route yang memerlukan admin, periksa role admin
-        // Middleware ini sekarang berfungsi sebagai "auth check" untuk semua authenticated users
-        // Route spesifik admin harus ditangani di dalam controller atau dengan middleware tambahan
 
         return $next($request);
     }

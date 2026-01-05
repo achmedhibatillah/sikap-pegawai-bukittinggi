@@ -1,6 +1,7 @@
 import DashboardLayout from "@/layout/dashboard-layout"
 import AdminDashboard from "./index/admin-dashboard"
 import IndexPegawaiPage from "./index/index-pegawai"
+import KepalaDashboard from "./index/kepala-dashboard"
 
 interface object_sss {
     usr?: string,
@@ -19,7 +20,7 @@ const IndexDashboardPage = ({sss}: IndexDashboardPageProps) => {
             ) : (sss?.acs === "pegawai") ? (
                 <IndexPegawaiPage akun_id={sss?.usr} />
             ) : (sss?.acs === "kepala") ? (
-                <div className="text-gray-500">Halaman kepala</div>
+                <KepalaDashboard />
             ) : null}
         </DashboardLayout>
     )

@@ -18,14 +18,14 @@ class Jabatan extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'tingkatan',
+        'jabatan_tingkatan_id',
         'nama',
         'deskripsi',
         'aktif',
     ];
 
     protected $casts = [
-        'tingkatan' => 'integer',
+        'jabatan_tingkatan_id' => 'integer',
         'aktif' => 'boolean',
     ];
 
@@ -63,11 +63,21 @@ class Jabatan extends Model
     }
 
     /**
-     * Scope ordered by tingkatan
+     * Scope ordered by tingkat
      */
     public function scopeOrdered($query)
     {
-        return $query->orderBy('tingkatan', 'asc');
+        return $query->join('jabatan_tingkatan', 'jabatan.jabatan_tingkatan_id', '=', 'jabatan_tingkatan.id')
+            ->orderBy('jabatan_tingkatan.tingkat', 'asc')
+            ->select('jabatan.*');
+    }
+
+    /**
+     * Get the tingkat that owns this jabatan
+     */
+    public function tingkat()
+    {
+        return $this->belongsTo(JabatanTingkat::class, 'jabatan_tingkatan_id');
     }
 }
 

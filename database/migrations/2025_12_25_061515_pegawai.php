@@ -25,7 +25,6 @@ return new class extends Migration
             $table->uuid('ktp')->nullable();
             $table->uuid('npwp')->nullable();
             $table->uuid('akun_id');
-            
 
             $table->foreign('foto')->references('id')->on('storage')->onDelete('cascade');
             $table->foreign('ktp')->references('id')->on('storage')->onDelete('cascade');

@@ -1,0 +1,7 @@
+- logo bisa diklik
+- tambah tombol download laporan di dashboard index
+- tingkat jabatan buat fleksibel (bisa ditambah / dikurang)
+- spreadsheet (excel) untuk laporan
+  1. utk admin & kapus
+  2. utk pegawainya sendiri
+- tambah nip di tabel pegawai

@@ -20,24 +20,12 @@ class DashboardController extends Controller
 
     public function stats()
     {
-        $sss = session('sss');
-        if (($sss['acs'] ?? '') !== 'admin') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized'
-            ], 401);
-        }
-
-        // Total Pegawai
         $totalPegawai = Pegawai::count();
 
-        // Cuti Menunggu (acc = false/belum diapprove)
         $cutiPending = Cuti::where('acc', false)->count();
 
-        // Ajuan Jabatan Pending
         $jabatanAjuanPending = JabatanAjuan::where('status', 'pending')->count();
 
-        // Kegiatan Aktif (sedang berlangsung - berdasarkan tanggal tunggal)
         $kegiatanAktif = Kegiatan::whereDate('tanggal', now()->toDateString())->count();
 
         return response()->json([
@@ -53,10 +41,6 @@ class DashboardController extends Controller
 
     public function pegawai()
     {
-        $sss = session('sss');
-        if (($sss['acs'] ?? '') !== 'admin') {
-            return redirect('/dashboard');
-        }
         return Inertia::render('dashboard/pegawai', [
             'sss' => session('sss')
         ]);
@@ -64,10 +48,6 @@ class DashboardController extends Controller
 
     public function pegawai_detail($id)
     {
-        $sss = session('sss');
-        if (($sss['acs'] ?? '') !== 'admin') {
-            return redirect('/dashboard');
-        }
         return Inertia::render('dashboard/pegawai-detail', [
             'sss' => session('sss'),
             'id' => $id

@@ -27,10 +27,20 @@ return new class extends Migration
 
         DB::table('akun')->insert([
             'id' => Str::uuid(),
-            'email' => 'a',
-            'password' => Hash::make('a'),
-            'telp' => '+6281388324884',
+            'email' => 'admin',
+            'password' => Hash::make('123456'),
+            'telp' => '6281388324884',
             'role' => 'admin',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        DB::table('akun')->insert([
+            'id' => Str::uuid(),
+            'email' => 'kapus',
+            'password' => Hash::make('123456'),
+            'telp' => '6281388324881',
+            'role' => 'kepala',
             'created_at' => now(),
             'updated_at' => now()
         ]);
