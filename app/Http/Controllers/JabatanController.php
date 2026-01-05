@@ -485,13 +485,13 @@ class JabatanController extends Controller
         }
 
         $request->validate([
-            'tingkat' => 'required|integer|min:1|unique:jabatan_tingkatan,tingkat',
+            'tingkat' => 'required|string|min:1|unique:jabatan_tingkatan,tingkat',
             'nama' => 'required|string|max:100',
             'deskripsi' => 'nullable|string|max:255',
         ]);
 
         $tingkat = JabatanTingkat::create([
-            'tingkat' => $request->tingkat,
+            'tingkat' => (string) $request->tingkat,
             'nama' => $request->nama,
             'deskripsi' => $request->deskripsi ?? '',
             'aktif' => true,
@@ -516,14 +516,14 @@ class JabatanController extends Controller
         }
 
         $request->validate([
-            'tingkat' => 'required|integer|min:1|unique:jabatan_tingkatan,tingkat,' . $id,
+            'tingkat' => 'required|string|min:1|unique:jabatan_tingkatan,tingkat,' . $id,
             'nama' => 'required|string|max:100',
             'deskripsi' => 'nullable|string|max:255',
             'aktif' => 'nullable|boolean',
         ]);
 
         $tingkat->update([
-            'tingkat' => $request->tingkat,
+            'tingkat' => (string) $request->tingkat,
             'nama' => $request->nama,
             'deskripsi' => $request->deskripsi ?? $tingkat->deskripsi,
             'aktif' => $request->aktif ?? $tingkat->aktif,

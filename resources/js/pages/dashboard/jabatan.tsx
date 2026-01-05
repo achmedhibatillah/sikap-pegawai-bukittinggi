@@ -31,7 +31,7 @@ interface JabatanTingkat {
 }
 
 interface TingkatForm {
-    tingkat: string | number
+    tingkat: string
     nama: string
     deskripsi: string
 }
@@ -163,7 +163,7 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
 
     const openEditTingkatPopup = (tingkat: JabatanTingkat) => {
         setEditingTingkat(tingkat)
-        setTingkatForm({ tingkat: tingkat.tingkat as string | number, nama: tingkat.nama, deskripsi: tingkat.deskripsi || '' })
+        setTingkatForm({ tingkat: tingkat.tingkat.toString(), nama: tingkat.nama, deskripsi: tingkat.deskripsi || '' })
         setTingkatAktif(tingkat.aktif)
         setShowEditTingkatPopup(true)
     }
@@ -277,7 +277,7 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
         setSubmitLoading(true)
         try {
             const resp = await axios.post('/api/jabatan-tingkat/add', {
-                tingkat: Number(tingkatForm.tingkat),
+                tingkat: tingkatForm.tingkat,
                 nama: tingkatForm.nama,
                 deskripsi: tingkatForm.deskripsi
             })
@@ -308,7 +308,7 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
         setSubmitLoading(true)
         try {
             const resp = await axios.post(`/api/jabatan-tingkat/${editingTingkat.id}/update`, {
-                tingkat: Number(tingkatForm.tingkat),
+                tingkat: tingkatForm.tingkat,
                 nama: tingkatForm.nama,
                 deskripsi: tingkatForm.deskripsi,
                 aktif: tingkatAktif
@@ -410,7 +410,7 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
         const borders: Record<number, string> = {
             1: 'border-amber-300',
             2: 'border-blue-300',
-            3: 'border-green-300',
+            3: 'border-green-300',             
             4: 'border-gray-300',
             5: 'border-gray-200',
         }
@@ -900,7 +900,7 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
                             type="number"
                             min="1"
                             value={tingkatForm.tingkat}
-                            onChange={(e) => setTingkatForm({ ...tingkatForm, tingkat: e.target.value ? parseInt(e.target.value) : '' })}
+                            onChange={(e) => setTingkatForm({ ...tingkatForm, tingkat: e.target.value })}
                             placeholder="Contoh: 1"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                         />
@@ -965,9 +965,9 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
                             type="number"
                             min="1"
                             value={tingkatForm.tingkat}
-                            onChange={(e) => setTingkatForm({ ...tingkatForm, tingkat: e.target.value ? parseInt(e.target.value) : '' })}
+                            onChange={(e) => setTingkatForm({ ...tingkatForm, tingkat: e.target.value })}
                             placeholder="Contoh: 1"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+
                         />
                     </div>
 
@@ -1030,6 +1030,5 @@ const JabatanPage = ({ sss }: DashboardPageProps) => {
         </DashboardLayout>
     )
 }
-
 export default JabatanPage
 

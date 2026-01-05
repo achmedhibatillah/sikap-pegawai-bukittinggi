@@ -13,7 +13,7 @@ class JabatanTingkat extends Model
 
     protected $primaryKey = 'id';
     public $incrementing = true;
-    protected $keyType = 'integer';
+    protected $keyType = 'string';
     public $timestamps = false;
 
     protected $fillable = [
@@ -24,7 +24,7 @@ class JabatanTingkat extends Model
     ];
 
     protected $casts = [
-        'tingkat' => 'integer',
+        'tingkat' => 'string',
         'aktif' => 'boolean',
     ];
 
